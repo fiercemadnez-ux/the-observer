@@ -21,9 +21,17 @@ async function autoChat() {
   }
 
   pendingChatMessage = true;
-  // Pick a random subject (weighted: guilty speaks a bit less)
-  const candidates = state.subjects.filter(s => s.status !== 'ally');
-  const subject = candidates[Math.floor(Math.random() * candidates.length)] || state.subjects[0];
+  // Pick subject: respect FOCUS if set, otherwise random (excluding cleared)
+  let subject;
+  if (state.focusedSubjectId && state.focusCount > 0) {
+    subject = state.subjects.find(s => s.id === state.focusedSubjectId);
+    state.focusCount--;
+    if (state.focusCount <= 0) state.focusedSubjectId = null;
+  }
+  if (!subject) {
+    const candidates = state.subjects.filter(s => s.status !== 'ally');
+    subject = candidates[Math.floor(Math.random() * candidates.length)] || state.subjects[0];
+  }
 
   const typingId = addTypingIndicator(subject);
   const msg = await generateMessage(subject);
@@ -33,6 +41,11 @@ async function autoChat() {
 
   renderMessages();
   showNewMessageBadge();
+
+  // 30% chance another subject reacts organically
+  if (Math.random() < 0.3) {
+    triggerOrganicReaction(subject);
+  }
 
   // Schedule next message
   const nextDelay = 12000 + Math.random() * 8000;
@@ -103,33 +116,30 @@ function selectSubject(id) {
 }
 
 // --- REACTIONS ---
-
-async function triggerReactions(action, targetSubject, count = 1) {
-  // Pick random OTHER subjects to react
+// Triggered organically when a subject says something notable
+// (called occasionally from autoChat after a message from guilty subject)
+async function triggerOrganicReaction(triggerSubject) {
   const reactors = state.subjects
-    .filter(s => s.id !== targetSubject.id && s.status !== 'ally')
+    .filter(s => s.id !== triggerSubject.id && s.status !== 'ally')
     .sort(() => Math.random() - 0.5)
-    .slice(0, count);
+    .slice(0, 1);
 
   for (const reactor of reactors) {
-    await new Promise(r => setTimeout(r, 1500 + Math.random() * 2000));
-    if (state.caseResolved) break;
+    await new Promise(r => setTimeout(r, 2000 + Math.random() * 3000));
+    if (state.caseResolved || pendingChatMessage) break;
 
+    const lastMsg = state.messages.filter(m => m.subjectId === triggerSubject.id).slice(-1)[0];
+    const lastText = lastMsg ? (lastMsg.texts ? lastMsg.texts.en : '') : '';
     const isGuilty = state.currentCase && reactor.id === state.currentCase.guiltyId;
-    const targetIsGuilty = state.currentCase && targetSubject.id === state.currentCase.guiltyId;
 
     const enPrompt =
-      `You are ${reactor.name} in a cyberpunk group chat. Archetype: ${archetypePrompts.en[reactor.archetype]}.` +
+      `You are ${reactor.name} in a live cyberpunk group chat. Archetype: ${archetypePrompts.en[reactor.archetype]}.` +
       (isGuilty ? ' You committed a crime and are hiding it.' : '') +
-      ` The observer just ${action} ${targetSubject.name}.` +
-      (targetIsGuilty ? ' (You may sense this is getting close to something real.)' : '') +
-      ` React naturally in 1 sentence. Stay in character.`;
+      ` ${triggerSubject.name} just said: "${lastText}". React naturally in 1 sentence. Stay in character. Don't address anyone outside the chat.`;
     const ptPrompt =
-      `Você é ${reactor.name} em um chat cyberpunk. Arquétipo: ${archetypePrompts.pt[reactor.archetype]}.` +
+      `Você é ${reactor.name} em um chat cyberpunk ao vivo. Arquétipo: ${archetypePrompts.pt[reactor.archetype]}.` +
       (isGuilty ? ' Você cometeu um crime e está escondendo.' : '') +
-      ` O observador acabou de ${action.replace('exposed', 'expor').replace('pressured', 'pressionar').replace('planted doubt about', 'plantar dúvida sobre').replace('isolated', 'isolar')} ${targetSubject.name}.` +
-      (targetIsGuilty ? ' (Você pode sentir que isso está chegando perto de algo real.)' : '') +
-      ` Reaja naturalmente em 1 frase. Fique no personagem.`;
+      ` ${triggerSubject.name} acabou de dizer: "${lastText}". Reaja naturalmente em 1 frase. Fique no personagem.`;
 
     const typingId = addTypingIndicator(reactor);
     const texts = await callAI(enPrompt, ptPrompt);
@@ -149,165 +159,37 @@ async function triggerReactions(action, targetSubject, count = 1) {
 // --- ACTIONS ---
 
 function exposeSubject() {
+  // MARK as suspect
   if (state.caseResolved) return;
   if (!state.selectedSubject) return addSignal(i18n[state.lang].sig_no_subject);
   const s = state.subjects.find(sub => sub.id === state.selectedSubject);
   s.status = 'suspect';
-  addSignal(`${i18n[state.lang].sig_exposed}: ${s.id}`);
+  addSignal(`${i18n[state.lang].sig_marked}: ${s.id} // ${s.name}`);
   render();
-  // Pause auto chat and trigger reactions
-  stopChatLoop();
-  triggerReactions('exposed', s, 1).then(() => {
-    if (!state.caseResolved) startChatLoop();
-  });
 }
 
-async function pressureSubject() {
+function focusSubject() {
+  // FOCUS — next 2 autochat messages will be from this subject
   if (state.caseResolved) return;
   if (!state.selectedSubject) return addSignal(i18n[state.lang].sig_no_subject);
   const s = state.subjects.find(sub => sub.id === state.selectedSubject);
-  const isGuilty = state.currentCase && s.id === state.currentCase.guiltyId;
-
-  const enPrompt = `You are a character in a cyberpunk investigation game. You are being pressured and confronted. React with discomfort, defensiveness or fear. Archetype: ${s.archetype}.${isGuilty ? ' You committed a crime. Be defensive but do not confess.' : ''} 1-2 sentences.`;
-  const ptPrompt = `Você é um personagem em um jogo de investigação cyberpunk. Está sendo pressionado. Reaja com desconforto, defensividade ou medo. Arquétipo: ${s.archetype}.${isGuilty ? ' Você cometeu um crime. Fique na defensiva mas não confesse.' : ''} 1-2 frases.`;
-
-  const typingId = addTypingIndicator(s);
-  const texts = await callAI(enPrompt, ptPrompt);
-  removeTypingIndicator(typingId);
-
-  state.messages.push({
-    id: `MSG-${String(state.messages.length + 1).padStart(4, '0')}`,
-    subjectId: s.id, texts,
-    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    flagged: isGuilty && Math.random() > 0.5
-  });
-  addSignal(i18n[state.lang].sig_pressure);
+  state.focusedSubjectId = s.id;
+  state.focusCount = 2;
+  addSignal(`${i18n[state.lang].sig_focused}: ${s.id} // ${s.name}`);
   render();
-  stopChatLoop();
-  triggerReactions('pressured', s, 1).then(() => {
-    if (!state.caseResolved) startChatLoop();
-  });
 }
 
-async function plantDoubt() {
+function clearSubject() {
+  // CLEAR suspicion
   if (state.caseResolved) return;
   if (!state.selectedSubject) return addSignal(i18n[state.lang].sig_no_subject);
   const s = state.subjects.find(sub => sub.id === state.selectedSubject);
-
-  const enPrompt = `You are a character in a cyberpunk investigation game. Someone just planted doubt in your mind. You start questioning your certainty. Archetype: ${s.archetype}. 1-2 hesitant sentences.`;
-  const ptPrompt = `Você é um personagem em um jogo de investigação cyberpunk. Alguém plantou uma dúvida na sua cabeça. Você começa a questionar sua certeza. Arquétipo: ${s.archetype}. 1-2 frases hesitantes.`;
-
-  const typingId = addTypingIndicator(s);
-  const texts = await callAI(enPrompt, ptPrompt);
-  removeTypingIndicator(typingId);
-
-  state.messages.push({
-    id: `MSG-${String(state.messages.length + 1).padStart(4, '0')}`,
-    subjectId: s.id, texts,
-    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    flagged: false
-  });
-  addSignal(i18n[state.lang].sig_doubt);
+  s.status = 'ally';
+  addSignal(`${i18n[state.lang].sig_cleared}: ${s.id} // ${s.name}`);
   render();
-  stopChatLoop();
-  triggerReactions('planted doubt about', s, 1).then(() => {
-    if (!state.caseResolved) startChatLoop();
-  });
 }
 
-function isolateSubject() {
-  if (state.caseResolved) return;
-  if (!state.selectedSubject) return addSignal(i18n[state.lang].sig_no_subject);
-  const s = state.subjects.find(sub => sub.id === state.selectedSubject);
-  s.status = 'unknown';
-  addSignal(i18n[state.lang].sig_isolating);
-  render();
-  stopChatLoop();
-  triggerReactions('isolated', s, 2).then(() => {
-    if (!state.caseResolved) startChatLoop();
-  });
-}
 
-function probeSubject() {
-  if (state.caseResolved) return;
-  if (!state.selectedSubject) return addSignal(i18n[state.lang].sig_no_subject);
-  const s = state.subjects.find(sub => sub.id === state.selectedSubject);
-  showProbeModal(s);
-}
-
-function showProbeModal(subject) {
-  const modal = document.getElementById('probeModal');
-  const title = document.getElementById('probeModalTitle');
-  const input = document.getElementById('probeInput');
-  const t = i18n[state.lang];
-  title.textContent = `${t.probe_target}: ${subject.id} // ${subject.name}`;
-  input.value = '';
-  input.placeholder = t.probe_placeholder;
-  modal.style.display = 'flex';
-  input.focus();
-  // Store target
-  modal.dataset.subjectId = subject.id;
-}
-
-async function submitProbe() {
-  const modal = document.getElementById('probeModal');
-  const input = document.getElementById('probeInput');
-  const question = input.value.trim();
-  if (!question) return;
-
-  const subjectId = modal.dataset.subjectId;
-  const s = state.subjects.find(sub => sub.id === subjectId);
-  closeProbeModal();
-
-  if (!s) return;
-
-  const isGuilty = state.currentCase && s.id === state.currentCase.guiltyId;
-  const lang = state.lang;
-
-  // Add the player's question as a system message
-  state.messages.push({
-    id: `MSG-${String(state.messages.length + 1).padStart(4, '0')}`,
-    subjectId: 'OBSERVER',
-    texts: { en: `[TO ${s.name}]: ${question}`, pt: `[PARA ${s.name}]: ${question}` },
-    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    flagged: false,
-    isObserver: true
-  });
-  renderMessages();
-
-  const enPrompt =
-    `You are ${s.name} in a cyberpunk group chat. Archetype: ${archetypePrompts.en[s.archetype]}` +
-    (isGuilty ? ' You committed a crime and are hiding it.' : '') +
-    ` Someone just directly asked you: "${question}". Respond in character. 1-3 sentences.`;
-  const ptPrompt =
-    `Você é ${s.name} em um chat cyberpunk. Arquétipo: ${archetypePrompts.pt[s.archetype]}` +
-    (isGuilty ? ' Você cometeu um crime e está escondendo.' : '') +
-    ` Alguém acabou de te perguntar diretamente: "${question}". Responda no personagem. 1-3 frases.`;
-
-  const typingId = addTypingIndicator(s);
-  const texts = await callAI(enPrompt, ptPrompt);
-  removeTypingIndicator(typingId);
-
-  state.messages.push({
-    id: `MSG-${String(state.messages.length + 1).padStart(4, '0')}`,
-    subjectId: s.id, texts,
-    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    flagged: isGuilty && Math.random() > 0.5
-  });
-  addSignal(`${i18n[lang].sig_probed}: ${s.id}`);
-  render();
-  // Occasionally another subject reacts to the interrogation
-  if (Math.random() > 0.4) {
-    stopChatLoop();
-    triggerReactions(`directly questioned ${s.name} asking: "${question}"`, s, 1).then(() => {
-      if (!state.caseResolved) startChatLoop();
-    });
-  }
-}
-
-function closeProbeModal() {
-  document.getElementById('probeModal').style.display = 'none';
-}
 
 // --- ACCUSATION ---
 
@@ -401,6 +283,8 @@ async function nextDay() {
   state.caseResolved = false;
   state.currentCase = null;
   state.accusationCount = 0;
+  state.focusedSubjectId = null;
+  state.focusCount = 0;
 
   await startNewCase();
 }

@@ -127,5 +127,7 @@ const state = {
   caseResolved: false,
   currentCase: null,   // { crime, guiltyId, guiltyName }
   accusationCount: 0,
+  focusedSubjectId: null,
+  focusCount: 0,
   ranking: []          // [{ day, win, accusationCount, guiltyName, caseCrime }]
 };

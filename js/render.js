@@ -108,17 +108,13 @@ function render() {
   document.getElementById('title-actions').textContent = t.actions;
   document.getElementById('title-ranking').textContent = t.ranking_title;
   document.getElementById('btn-expose').textContent = t.btnExpose;
-  document.getElementById('btn-pressure').textContent = t.btnPressure;
-  document.getElementById('btn-doubt').textContent = t.btnDoubt;
-  document.getElementById('btn-isolate').textContent = t.btnIsolate;
-  document.getElementById('btn-observe').textContent = t.btnObserve;
+  document.getElementById('btn-focus').textContent = t.btnFocus;
+  document.getElementById('btn-clear').textContent = t.btnClear;
   document.getElementById('btn-accuse').textContent = t.btnAccuse;
   document.getElementById('footer-version').textContent = t.footer;
   document.getElementById('label-reputation').textContent = t.reputationLabel;
   document.getElementById('label-crime').textContent = t.crime_label;
   document.getElementById('action-hint').textContent = t.action_hint;
-  document.getElementById('probe-send').textContent = t.probe_send;
-  document.getElementById('probe-cancel').textContent = t.probe_cancel;
 
   // Update crime description in current language
   if (state.currentCase) {

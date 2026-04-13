@@ -55,11 +55,9 @@
         <div class="panel-title" id="title-actions">Actions</div>
         <div class="action-hint" id="action-hint">Select a subject from the list or click a message to target them.</div>
         <div class="action-panel">
-          <button onclick="exposeSubject()" id="btn-expose">▸ EXPOSE selected</button>
-          <button onclick="pressureSubject()" id="btn-pressure">▸ PRESSURE subject</button>
-          <button onclick="plantDoubt()" id="btn-doubt">▸ PLANT doubt</button>
-          <button onclick="isolateSubject()" id="btn-isolate">▸ ISOLATE target</button>
-          <button onclick="probeSubject()" id="btn-observe">▸ PROBE subject</button>
+          <button onclick="exposeSubject()" id="btn-expose">▸ MARK as suspect</button>
+          <button onclick="focusSubject()" id="btn-focus">▸ FOCUS on subject</button>
+          <button onclick="clearSubject()" id="btn-clear">▸ CLEAR suspicion</button>
           <button onclick="accuseSubject()" id="btn-accuse" class="btn-accuse">▸ ACCUSE selected</button>
         </div>
       </div>
@@ -74,18 +72,6 @@
       <span id="footer-version">SYSTEM v0.1.0 // OBSERVATION PROTOCOL ACTIVE</span>
       <span><span id="label-reputation">REPUTATION</span>: <span id="reputation">NEUTRAL</span></span>
     </footer>
-  </div>
-
-  <!-- Probe Modal -->
-  <div id="probeModal" class="result-overlay" style="display:none">
-    <div class="result-card probe-card">
-      <div class="result-title probe-title" id="probeModalTitle">PROBE</div>
-      <textarea id="probeInput" class="probe-input" rows="3" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitProbe();}"></textarea>
-      <div class="probe-buttons">
-        <button onclick="closeProbeModal()" class="probe-btn-cancel" id="probe-cancel">CANCEL</button>
-        <button onclick="submitProbe()" class="probe-btn-send" id="probe-send">▸ SEND</button>
-      </div>
-    </div>
   </div>
 
   <!-- Result Overlay -->

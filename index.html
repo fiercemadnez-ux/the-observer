@@ -113,6 +113,58 @@
       50% { opacity: 0.5; }
     }
 
+    /* Case Panel */
+    .case-panel {
+      grid-column: 1 / -1;
+      padding: 15px 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--accent);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .case-info {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .case-id {
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+    }
+
+    .case-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .case-description {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .case-objective {
+      font-size: 0.75rem;
+      color: var(--warning);
+    }
+
+    .solve-btn {
+      padding: 10px 20px;
+      background: var(--accent);
+      color: var(--bg-primary);
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .solve-btn:hover {
+      background: var(--accent-dim);
+    }
+
     /* Main Terminal Area */
     .terminal {
       background: var(--bg-secondary);
@@ -423,6 +475,54 @@
       color: var(--text-dim);
       font-style: italic;
     }
+
+    /* Solve Modal */
+    #solveModal .modal-body {
+      max-width: 400px;
+    }
+
+    .subject-select {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 15px 0;
+    }
+
+    .subject-select-btn {
+      padding: 12px 15px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--text-dim);
+      color: var(--text-primary);
+      cursor: pointer;
+      text-align: left;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .subject-select-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .subject-select-btn.selected {
+      border-color: var(--accent);
+      background: rgba(0, 255, 136, 0.1);
+    }
+
+    .success-message {
+      text-align: center;
+      padding: 30px;
+    }
+
+    .success-message h2 {
+      color: var(--accent);
+      margin-bottom: 15px;
+    }
+
+    .success-message p {
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
@@ -440,6 +540,16 @@
         </div>
       </div>
     </header>
+
+    <div class="case-panel" id="casePanel">
+      <div class="case-info">
+        <span class="case-id" id="caseId">CASE-001</span>
+        <span class="case-title" id="caseTitle">THE SECURITY LEAK</span>
+        <span class="case-description" id="caseDescription">Someone in the group is feeding information to the wrong side.</span>
+        <span class="case-objective" id="caseObjective">OBJECTIVE: Identify the informant</span>
+      </div>
+      <button class="solve-btn" onclick="showSolveModal()">▸ SUBMIT ANSWER</button>
+    </div>
 
     <main class="terminal">
       <div class="terminal-header">
@@ -531,6 +641,21 @@
     </div>
   </div>
 
+  <!-- Solve Modal -->
+  <div id="solveModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>// SUBMIT SOLUTION</span>
+        <span style="cursor:pointer;float:right;" onclick="hideSolveModal()">[X]</span>
+      </div>
+      <div class="modal-body" id="solveModalBody">
+        <p>Select the subject you believe is responsible:</p>
+        <div class="subject-select" id="subjectSelect"></div>
+        <button class="solve-btn" style="width:100%;" onclick="submitSolution()">▸ CONFIRM</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Game State
     const state = {
@@ -539,8 +664,54 @@
       subjects: [],
       messages: [],
       signals: [],
-      selectedSubject: null
+      selectedSubject: null,
+      currentCase: null,
+      caseSolved: false
     };
+
+    // Case definitions
+    const cases = [
+      {
+        id: 'CASE-001',
+        title: 'THE SECURITY LEAK',
+        description: 'Someone in the group is feeding information to the wrong side. Identify who.',
+        objective: 'Identify the informant',
+        targetType: 'hidden_agenda',
+        hint: 'They dodge questions and want to discuss things privately.'
+      },
+      {
+        id: 'CASE-002',
+        title: 'THE POWER GRAB',
+        description: 'Someone is trying to take control of the operation. Who is it?',
+        objective: 'Identify the power seeker',
+        targetType: 'status_seeker',
+        hint: 'They boast about their experience and want recognition.'
+      },
+      {
+        id: 'CASE-003',
+        title: 'THE AGENT PROVOCATEUR',
+        description: 'Someone is stirring up conflict to destabilize the group. Find them.',
+        objective: 'Identify the troublemaker',
+        targetType: 'drama_creator',
+        hint: 'They create drama and question others\' motives.'
+      },
+      {
+        id: 'CASE-004',
+        title: 'THE DOUBLE AGENT',
+        description: 'Someone is playing both sides. Who can\'t be trusted?',
+        objective: 'Identify the manipulator',
+        targetType: 'manipulator',
+        hint: 'They flatter others and try to get private information.'
+      },
+      {
+        id: 'CASE-005',
+        title: 'THE TRUE BELIEVER',
+        description: 'Someone is dangerously committed to the cause. Who is it?',
+        objective: 'Identify the radical',
+        targetType: 'true_believer',
+        hint: 'They use absolute language and want unity at all costs.'
+      }
+    ];
 
     // Name banks for procedural generation
     const firstNames = [
@@ -963,6 +1134,89 @@
 
     function hideTutorial() {
       document.getElementById('tutorialModal').style.display = 'none';
+    }
+
+    // Case management
+    function loadCase() {
+      // Pick a random case
+      const caseIndex = Math.floor(Math.random() * cases.length);
+      state.currentCase = cases[caseIndex];
+      state.caseSolved = false;
+      
+      // Update UI
+      document.getElementById('caseId').textContent = state.currentCase.id;
+      document.getElementById('caseTitle').textContent = state.currentCase.title;
+      document.getElementById('caseDescription').textContent = state.currentCase.description;
+      document.getElementById('caseObjective').textContent = 'OBJECTIVE: ' + state.currentCase.objective;
+      
+      addSignal(`New case loaded: ${state.currentCase.id}`);
+      addSignal(`Hint: ${state.currentCase.hint}`);
+    }
+
+    function showSolveModal() {
+      const container = document.getElementById('subjectSelect');
+      container.innerHTML = state.subjects.map(s => `
+        <button class="subject-select-btn" onclick="selectForSolve('${s.id}', this)">
+          ${s.id} // ${s.name} - ${s.description}
+        </button>
+      `).join('');
+      state.selectedForSolve = null;
+      document.getElementById('solveModal').style.display = 'flex';
+    }
+
+    function hideSolveModal() {
+      document.getElementById('solveModal').style.display = 'none';
+    }
+
+    function selectForSolve(subjectId, btn) {
+      state.selectedForSolve = subjectId;
+      document.querySelectorAll('.subject-select-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    }
+
+    function submitSolution() {
+      if (!state.selectedForSolve) {
+        addSignal('Select a subject first');
+        return;
+      }
+      
+      const subject = state.subjects.find(s => s.id === state.selectedForSolve);
+      const isCorrect = subject.archetype === state.currentCase.targetType;
+      
+      if (isCorrect) {
+        state.reputation += 50;
+        state.caseSolved = true;
+        document.getElementById('solveModalBody').innerHTML = `
+          <div class="success-message">
+            <h2>▸ CASE SOLVED</h2>
+            <p>You correctly identified ${subject.name} as ${state.currentCase.objective.toLowerCase()}.</p>
+            <p>REPUTATION +50</p>
+            <button class="solve-btn" onclick="nextCase()">▸ NEXT CASE</button>
+          </div>
+        `;
+        addSignal(`CASE SOLVED: ${state.currentCase.id}`);
+      } else {
+        state.reputation -= 20;
+        document.getElementById('solveModalBody').innerHTML = `
+          <div class="success-message">
+            <h2 style="color:var(--danger)">▸ WRONG SUBJECT</h2>
+            <p>${subject.name} is not the target.</p>
+            <p>REPUTATION -20</p>
+            <p style="margin-top:20px">Hint: ${state.currentCase.hint}</p>
+            <button class="solve-btn" style="width:100%;margin-top:20px;" onclick="hideSolveModal();showSolveModal();">▸ TRY AGAIN</button>
+          </div>
+        `;
+        addSignal(`Wrong solution for ${state.currentCase.id}`);
+      }
+      
+      render();
+    }
+
+    function nextCase() {
+      state.day++;
+      loadCase();
+      hideSolveModal();
+      render();
     }
 
     // Close modal on outside click

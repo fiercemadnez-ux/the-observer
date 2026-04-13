@@ -32,6 +32,9 @@
 
     <main class="terminal">
       <div class="terminal-header" id="terminal-title">▸ INCOMING TRANSMISSIONS // TERMINAL_07</div>
+      <div id="caseInfo" class="case-info" style="display:none">
+        <span id="label-crime">INCIDENT</span>: <span id="crimeDescription"></span>
+      </div>
       <div class="terminal-content" id="messageStream"></div>
     </main>
 
@@ -53,8 +56,14 @@
           <button onclick="pressureSubject()" id="btn-pressure">▸ PRESSURE subject</button>
           <button onclick="plantDoubt()" id="btn-doubt">▸ PLANT doubt</button>
           <button onclick="isolateSubject()" id="btn-isolate">▸ ISOLATE target</button>
-          <button onclick="observeMore()" id="btn-observe">▸ OBSERVE mode</button>
+          <button onclick="probeSubject()" id="btn-observe">▸ PROBE subject</button>
+          <button onclick="accuseSubject()" id="btn-accuse" class="btn-accuse">▸ ACCUSE selected</button>
         </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title" id="title-ranking">Case History</div>
+        <div class="ranking-list" id="rankingList"></div>
       </div>
     </aside>
 
@@ -62,6 +71,15 @@
       <span id="footer-version">SYSTEM v0.1.0 // OBSERVATION PROTOCOL ACTIVE</span>
       <span><span id="label-reputation">REPUTATION</span>: <span id="reputation">NEUTRAL</span></span>
     </footer>
+  </div>
+
+  <!-- Result Overlay -->
+  <div id="resultOverlay" class="result-overlay" style="display:none">
+    <div class="result-card">
+      <div class="result-title" id="resultTitle">CASE CLOSED</div>
+      <div class="result-body" id="resultBody"></div>
+      <button id="nextDayBtn" onclick="nextDay()" class="result-btn">▸ NEXT DAY</button>
+    </div>
   </div>
 
   <script src="js/i18n.js"></script>

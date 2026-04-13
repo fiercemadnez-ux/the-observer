@@ -28,5 +28,10 @@ const state = {
   subjects: [],
   messages: [],
   signals: [],
-  selectedSubject: null
+  selectedSubject: null,
+  caseActive: false,
+  caseResolved: false,
+  currentCase: null,   // { crime, guiltyId, guiltyName }
+  accusationCount: 0,
+  ranking: []          // [{ day, win, accusationCount, guiltyName, caseCrime }]
 };

@@ -21,8 +21,8 @@ body {
   font-family: 'IBM Plex Mono', monospace;
   background: var(--bg-primary);
   color: var(--text-primary);
-  min-height: 100vh;
-  overflow-x: hidden;
+  height: 100vh;
+  overflow: hidden;
 }
 
 body::before {
@@ -42,7 +42,7 @@ body::before {
   grid-template-columns: 1fr 300px;
   grid-template-rows: auto 1fr auto;
   gap: 20px;
-  height: 100vh;
+  height: 100%;
 }
 
 header {
@@ -148,7 +148,7 @@ header {
   font-size: 0.65rem; background: rgba(255, 68, 68, 0.2); color: var(--danger);
 }
 
-.side-panel { display: flex; flex-direction: column; gap: 15px; }
+.side-panel { display: flex; flex-direction: column; gap: 15px; min-height: 0; overflow-y: auto; }
 .panel { background: var(--bg-secondary); border: 1px solid var(--bg-tertiary); padding: 15px; }
 .panel-title {
   font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.15em;
@@ -186,3 +186,82 @@ footer {
 }
 
 .day-counter { color: var(--accent); }
+
+/* Case info bar */
+.case-info {
+  padding: 8px 15px;
+  background: rgba(0, 255, 136, 0.05);
+  border-bottom: 1px solid var(--bg-tertiary);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+}
+.case-info span:first-child { color: var(--accent); margin-right: 5px; }
+
+/* Subject selected highlight */
+.subject-selected {
+  border-left: 2px solid var(--accent) !important;
+  background: rgba(0, 255, 136, 0.05) !important;
+}
+
+/* Accuse button */
+.btn-accuse {
+  border-color: var(--danger) !important;
+  color: var(--danger) !important;
+  margin-top: 5px;
+}
+.btn-accuse:hover {
+  background: rgba(255, 68, 68, 0.1) !important;
+  border-color: var(--danger) !important;
+  color: var(--danger) !important;
+}
+
+/* Ranking */
+.ranking-list { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; }
+.ranking-entry {
+  padding: 6px 8px;
+  font-size: 0.72rem;
+  border-left: 2px solid var(--text-dim);
+}
+.rank-win { border-left-color: var(--accent); }
+.rank-loss { border-left-color: var(--danger); }
+.rank-top { display: flex; justify-content: space-between; color: var(--text-secondary); margin-bottom: 2px; }
+.rank-win .rank-top { color: var(--accent); }
+.rank-loss .rank-top { color: var(--danger); }
+.rank-crime { color: var(--text-dim); font-size: 0.68rem; }
+
+/* Result overlay */
+.result-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10000;
+}
+.result-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--accent);
+  padding: 40px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(0,255,136,0.15);
+}
+.result-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  margin-bottom: 20px;
+}
+.result-body {
+  margin-bottom: 30px;
+  line-height: 1.7;
+  text-align: left;
+}
+.result-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 0.9rem;
+  border-color: var(--accent);
+  color: var(--accent);
+}

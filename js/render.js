@@ -8,13 +8,14 @@ function renderMessages() {
 
   container.innerHTML = state.messages.map(msg => {
     const s = state.subjects.find(sub => sub.id === msg.subjectId);
+    const text = msg.texts ? (msg.texts[state.lang] || msg.texts.en) : (msg.text || '');
     return `
       <div class="message" onclick="selectSubject('${msg.subjectId}')">
         <div class="message-header">
           <span class="message-id">${msg.subjectId} // ${s ? s.name : '???'}</span>
           <span class="message-timestamp">${msg.timestamp}</span>
         </div>
-        <div class="message-body">${msg.text}</div>
+        <div class="message-body">${text}</div>
         ${msg.flagged ? `<div class="message-flag">${i18n[state.lang].flagged}</div>` : ''}
       </div>`;
   }).join('');
@@ -23,12 +24,16 @@ function renderMessages() {
 }
 
 function renderSubjects() {
+  const t = i18n[state.lang];
   const container = document.getElementById('subjectBoard');
-  container.innerHTML = state.subjects.map(s => `
-    <div class="subject" onclick="selectSubject('${s.id}')">
-      <span class="subject-name">${s.id}</span>
-      <span class="subject-status status-${s.status}">${i18n[state.lang]['status_' + s.status]}</span>
-    </div>`).join('');
+  container.innerHTML = state.subjects.map(s => {
+    const isSelected = s.id === state.selectedSubject;
+    return `
+      <div class="subject ${isSelected ? 'subject-selected' : ''}" onclick="selectSubject('${s.id}')">
+        <span class="subject-name">${s.id} // ${s.name}</span>
+        <span class="subject-status status-${s.status}">${t['status_' + s.status]}</span>
+      </div>`;
+  }).join('');
 }
 
 function renderSignals() {
@@ -36,6 +41,25 @@ function renderSignals() {
   container.innerHTML = state.signals.slice(-10).map(sig =>
     `<div class="signal">[${sig.time}] ${sig.text}</div>`
   ).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+function renderRanking() {
+  const t = i18n[state.lang];
+  const container = document.getElementById('rankingList');
+  if (!state.ranking.length) {
+    container.innerHTML = `<div style="color:var(--text-dim);font-size:0.75rem">${t.ranking_empty}</div>`;
+    return;
+  }
+  container.innerHTML = [...state.ranking].reverse().map((entry, i) => `
+    <div class="ranking-entry ${entry.win ? 'rank-win' : 'rank-loss'}">
+      <div class="rank-top">
+        <span>${t.ranking_day}${String(entry.day).padStart(3,'0')}</span>
+        <span>${entry.win ? '✓' : '✗'} ${entry.accusationCount} ${t.ranking_acc}</span>
+      </div>
+      <div class="rank-crime">${entry.caseCrime}</div>
+    </div>
+  `).join('');
 }
 
 function updateStats() {
@@ -55,16 +79,25 @@ function render() {
   document.getElementById('title-analysis').textContent = t.analysis;
   document.getElementById('title-signals').textContent = t.signals;
   document.getElementById('title-actions').textContent = t.actions;
+  document.getElementById('title-ranking').textContent = t.ranking_title;
   document.getElementById('btn-expose').textContent = t.btnExpose;
   document.getElementById('btn-pressure').textContent = t.btnPressure;
   document.getElementById('btn-doubt').textContent = t.btnDoubt;
   document.getElementById('btn-isolate').textContent = t.btnIsolate;
   document.getElementById('btn-observe').textContent = t.btnObserve;
+  document.getElementById('btn-accuse').textContent = t.btnAccuse;
   document.getElementById('footer-version').textContent = t.footer;
   document.getElementById('label-reputation').textContent = t.reputationLabel;
+  document.getElementById('label-crime').textContent = t.crime_label;
+
+  // Update crime description in current language
+  if (state.currentCase) {
+    document.getElementById('crimeDescription').textContent = state.currentCase.crime[state.lang];
+  }
 
   renderMessages();
   renderSubjects();
   renderSignals();
+  renderRanking();
   updateStats();
 }

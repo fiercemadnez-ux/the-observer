@@ -1,5 +1,4 @@
-const NVIDIA_API_KEY = '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';
-const NVIDIA_API_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
+const NVIDIA_API_URL = 'https://observer-proxy.ryanjogavel.workers.dev';
 const NVIDIA_MODEL = 'meta/llama-3.1-8b-instruct';
 
 // --- CASE GENERATION ---
@@ -23,10 +22,7 @@ async function generateCase(subjects) {
   try {
     const response = await fetch(NVIDIA_API_URL, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: NVIDIA_MODEL,
         messages: [{ role: 'user', content: systemPrompt }],
@@ -121,10 +117,7 @@ async function generateMessageFromAI(subject) {
   try {
     const response = await fetch(NVIDIA_API_URL, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: NVIDIA_MODEL,
         messages: [{ role: 'user', content: systemPrompt }],
@@ -158,10 +151,7 @@ async function callAI(systemPromptEN, systemPromptPT) {
   try {
     const response = await fetch(NVIDIA_API_URL, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: NVIDIA_MODEL,
         messages: [

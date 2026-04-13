@@ -141,7 +141,8 @@ async function generateMessageFromAI(subject) {
     const parsed = JSON.parse(jsonMatch[0]);
     return { en: parsed.en || '...', pt: parsed.pt || '...' };
   } catch (err) {
-    console.warn('AI fallback:', err.message);
+    console.error('[API ERROR] generateMessageFromAI:', err.message);
+    addSignal(`⚠ API error: ${err.message.slice(0, 40)}`);
     const enTemplates = messageTemplates[archetype].en;
     const ptTemplates = messageTemplates[archetype].pt;
     const i = Math.floor(Math.random() * enTemplates.length);

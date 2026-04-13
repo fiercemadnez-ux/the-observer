@@ -29,13 +29,16 @@ function renderMessages() {
     const isSelected = s && s.id === state.selectedSubject;
     const isClue = msg.isClue;
 
-    // Highlight keywords
-    if (state.currentCase && state.currentCase.keywords && state.currentCase.keywords.length) {
-      state.currentCase.keywords.forEach(kw => {
-        const regex = new RegExp(`(${kw})`, 'gi');
-        text = text.replace(regex, '<mark class="kw-highlight">$1</mark>');
-      });
-    }
+    // Highlight keywords (use current language keywords)
+    const keywords = state.currentCase && state.currentCase.keywords
+      ? (state.currentCase.keywords[state.lang] || state.currentCase.keywords.en || [])
+      : [];
+    keywords.forEach(kw => {
+      if (!kw) return;
+      const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`(${escaped})`, 'gi');
+      text = text.replace(regex, '<mark class="kw-highlight">$1</mark>');
+    });
 
     return `
       <div class="message ${isObserver ? 'message-observer' : ''} ${isSelected ? 'message-selected' : ''} ${isClue ? 'message-clue' : ''}" 
@@ -131,10 +134,11 @@ function render() {
   if (state.currentCase) {
     setText('crimeDescription', state.currentCase.crime[state.lang]);
     const kwBar = document.getElementById('keywordBar');
-    if (kwBar && state.currentCase.keywords && state.currentCase.keywords.length) {
-      kwBar.innerHTML = state.currentCase.keywords.map(k =>
-        `<span class="kw-tag">${k}</span>`
-      ).join('');
+    const kws = state.currentCase.keywords
+      ? (state.currentCase.keywords[state.lang] || state.currentCase.keywords.en || [])
+      : [];
+    if (kwBar && kws.length) {
+      kwBar.innerHTML = kws.map(k => `<span class="kw-tag">${k}</span>`).join('');
     }
   }
 

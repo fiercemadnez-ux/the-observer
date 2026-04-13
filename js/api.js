@@ -38,7 +38,8 @@ async function generateCase(subjects) {
     `  "setting_en": "name of the setting in English",\n` +
     `  "setting_pt": "nome do cenário em português",\n` +
     `  "clues": ["behavioral clue 1 (NOT naming the culprit)", "behavioral clue 2", "behavioral clue 3"],\n` +
-    `  "keywords": ["3 to 6 short keywords related to the incident that might appear in chat"]\n` +
+    `  "keywords_en": ["3 to 6 short keywords in English related to the incident"],\n` +
+    `  "keywords_pt": ["3 a 6 palavras-chave em português relacionadas ao incidente"]\n` +
     `}\n` +
     `Clues describe subtle behaviors. Keywords are words that hint at guilt when spoken naturally.`;
 
@@ -64,7 +65,10 @@ async function generateCase(subjects) {
       crime: { en: parsed.crime_en || 'Unidentified incident.', pt: parsed.crime_pt || 'Incidente não identificado.' },
       setting: { en: parsed.setting_en || 'unknown location', pt: parsed.setting_pt || 'local desconhecido' },
       clues: parsed.clues || [],
-      keywords: (parsed.keywords || []).map(k => k.toLowerCase()),
+      keywords: {
+        en: (parsed.keywords_en || parsed.keywords || []).map(k => k.toLowerCase()),
+        pt: (parsed.keywords_pt || parsed.keywords_en || parsed.keywords || []).map(k => k.toLowerCase())
+      },
       guiltyId: guiltySubject.id,
       guiltyName: guiltySubject.name
     };
@@ -74,7 +78,7 @@ async function generateCase(subjects) {
       crime: { en: 'Unidentified incident.', pt: 'Incidente não identificado.' },
       setting: { en: 'unknown location', pt: 'local desconhecido' },
       clues: [],
-      keywords: [],
+      keywords: { en: [], pt: [] },
       guiltyId: guiltySubject.id,
       guiltyName: guiltySubject.name
     };

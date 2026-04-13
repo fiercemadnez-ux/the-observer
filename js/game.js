@@ -5,7 +5,7 @@ let pendingChatMessage = false;
 function startChatLoop() {
   stopChatLoop();
   // First message after 3s, then every 9-14s
-  const delay = 3000 + Math.random() * 2000;
+  const delay = 1000 + Math.random() * 1000;
   chatLoopTimer = setTimeout(autoChat, delay);
 }
 
@@ -35,7 +35,7 @@ async function autoChat() {
   showNewMessageBadge();
 
   // Schedule next message
-  const nextDelay = 9000 + Math.random() * 5000;
+  const nextDelay = 4000 + Math.random() * 3000;
   chatLoopTimer = setTimeout(autoChat, nextDelay);
 }
 

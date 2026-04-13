@@ -344,6 +344,74 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+
+    .modal-content {
+      background: var(--bg-secondary);
+      border: 1px solid var(--accent);
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 0;
+    }
+
+    .modal-header {
+      padding: 15px 20px;
+      background: var(--bg-tertiary);
+      font-size: 0.8rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      border-bottom: 1px solid var(--bg-tertiary);
+    }
+
+    .modal-body {
+      padding: 20px;
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+
+    .modal-body h3 {
+      color: var(--accent);
+      margin: 20px 0 10px;
+      font-size: 0.9rem;
+      letter-spacing: 0.1em;
+    }
+
+    .modal-body h3:first-child {
+      margin-top: 0;
+    }
+
+    .modal-body ol, .modal-body ul {
+      margin-left: 20px;
+      color: var(--text-secondary);
+    }
+
+    .modal-body li {
+      margin-bottom: 5px;
+    }
+
+    .modal-body p {
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+
+    .modal-body em {
+      color: var(--text-dim);
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
@@ -401,7 +469,55 @@
     <footer>
       <span>SYSTEM v0.1.0 // OBSERVATION PROTOCOL ACTIVE</span>
       <span>REPUTATION: <span id="reputation">NEUTRAL</span></span>
+      <span style="cursor:pointer;color:var(--accent)" onclick="showTutorial()">[? HELP]</span>
     </footer>
+  </div>
+
+  <!-- Tutorial Modal -->
+  <div id="tutorialModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>// OPERATIVE HANDBOOK</span>
+        <span style="cursor:pointer;float:right;" onclick="hideTutorial()">[X]</span>
+      </div>
+      <div class="modal-body">
+        <h3>▸ YOUR MISSION</h3>
+        <p>You are an observer at a clandestine terminal. Watch figures enter the system, analyze their speech patterns, and decide when to intervene.</p>
+        
+        <h3>▸ HOW TO PLAY</h3>
+        <ol>
+          <li><strong>Observe</strong> — Watch messages appear in the terminal. Each figure has a unique speaking pattern.</li>
+          <li><strong>Analyze</strong> — Click on subjects in the panel to see their status (ALLY, SUSPECT, THREAT, UNKNOWN).</li>
+          <li><strong>Collect Signals</strong> — Look for patterns: who speaks too much, who stays quiet, who seeks status, who lies.</li>
+          <li><strong>Act</strong> — Use actions to expose, pressure, plant doubt, or isolate subjects.</li>
+        </ol>
+
+        <h3>▸ ACTION BUTTONS</h3>
+        <ul>
+          <li><strong>EXPOSE</strong> — Reveal what you know about a subject. Lowers their trust significantly.</li>
+          <li><strong>PRESSURE</strong> — Push for more information. Makes them defensive.</li>
+          <li><strong>PLANT DOUBT</strong> — Make them question themselves. Subtle manipulation.</li>
+          <li><strong>ISOLATE</strong> — Reduce contact with other subjects. Cuts their influence.</li>
+          <li><strong>OBSERVE</strong> — Wait and watch. Adds new subjects to monitor.</li>
+        </ul>
+
+        <h3>▸ SUBJECT TYPES</h3>
+        <ul>
+          <li><strong>Status Seeker</strong> — Wants recognition, talks about achievements</li>
+          <li><strong>Quiet One</strong> — Speaks little, observes much</li>
+          <li><strong>Talker</strong> — Fills silence, diverts topics</li>
+          <li><strong>Drama Creator</strong> — Creates conflict, provokes</li>
+          <li><strong>Hidden Agenda</strong> — Has an angle, dodges questions</li>
+          <li><strong>True Believer</strong> — Fully committed, absolute language</li>
+          <li><strong>Survivor</strong> — Just wants to get by, pragmatic</li>
+          <li><strong>Manipulator</strong> — Playing everyone, flatters and uses</li>
+        </ul>
+
+        <h3>▸ GOAL</h3>
+        <p>Build your reputation by correctly identifying who is who. The game doesn't tell you the truth — you have to deduce it.</p>
+        <p><em>You are the only one seeing the pattern behind the smoke.</em></p>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -623,6 +739,22 @@
     function save() {
       localStorage.setItem('theObserver_save', JSON.stringify(state));
     }
+
+    function showTutorial() {
+      document.getElementById('tutorialModal').style.display = 'flex';
+    }
+
+    function hideTutorial() {
+      document.getElementById('tutorialModal').style.display = 'none';
+    }
+
+    // Close modal on outside click
+    document.addEventListener('click', function(e) {
+      const modal = document.getElementById('tutorialModal');
+      if (e.target === modal) {
+        hideTutorial();
+      }
+    });
 
     // Actions
     function exposeSubject() {

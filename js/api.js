@@ -1,6 +1,38 @@
 const NVIDIA_API_URL = 'https://observer-proxy.ryanjogavel.workers.dev';
 const NVIDIA_MODEL = 'meta/llama-3.1-8b-instruct';
 
+// Robust JSON parser: tries direct parse, then regex extract, then field extraction
+function parseJsonResponse(raw, allowRaw = false) {
+  // 1. Try direct parse
+  try { return JSON.parse(raw); } catch(e) {}
+
+  // 2. Try extracting first {...} block
+  const match = raw.match(/\{[\s\S]*?\}/s) || raw.match(/\{[\s\S]*\}/);
+  if (match) {
+    try { return JSON.parse(match[0]); } catch(e) {}
+    // 3. Try fixing common issues: unescaped quotes, trailing commas
+    try {
+      const fixed = match[0]
+        .replace(/,\s*}/g, '}')
+        .replace(/,\s*]/g, ']')
+        .replace(/([{,]\s*)(\w+)\s*:/g, '$1"$2":');
+      return JSON.parse(fixed);
+    } catch(e) {}
+  }
+
+  // 4. Try extracting "en" and "pt" fields manually
+  const en = raw.match(/"en"\s*:\s*"([^"]+)"/);
+  const pt = raw.match(/"pt"\s*:\s*"([^"]+)"/);
+  if (en || pt) {
+    return { en: en ? en[1] : '...', pt: pt ? pt[1] : '...' };
+  }
+
+  // 5. If allowRaw, return the raw text as both languages (for non-bilingual responses)
+  if (allowRaw && raw.length > 0 && raw.length < 500) return raw;
+
+  return null;
+}
+
 // --- CASE GENERATION ---
 
 async function generateCase(subjects) {
@@ -58,9 +90,8 @@ async function generateCase(subjects) {
     if (!response.ok) throw new Error(`API ${response.status}`);
     const data = await response.json();
     const raw = data.choices[0].message.content.trim();
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No JSON found');
-    const parsed = JSON.parse(jsonMatch[0]);
+    const parsed = parseJsonResponse(raw, true);
+    if (!parsed) throw new Error('No JSON found');
     return {
       crime: { en: parsed.crime_en || 'Unidentified incident.', pt: parsed.crime_pt || 'Incidente não identificado.' },
       setting: { en: parsed.setting_en || 'unknown location', pt: parsed.setting_pt || 'local desconhecido' },
@@ -148,8 +179,8 @@ async function generateMessageFromAI(subject) {
     guiltyExtra + clueExtra + `\n` +
     `Recent chat history:\n${recentLog || '(channel just opened)'}\n\n` +
     `Write your next message as this person. Mix topics — react to others, bring up something from your world, or comment on the recent event.\n` +
-    `Reply ONLY with JSON: {"en": "<natural message in English>", "pt": "<mensagem natural em português, adequada ao contexto de ${settingPT}>"}\n` +
-    `Short, natural, in-character. No stage directions. No markdown.`;
+    `YOUR RESPONSE MUST BE ONLY THIS JSON, nothing else, no explanation, no prefix:\n` +
+    `{"en": "message in English", "pt": "mensagem em português"}`;
 
   try {
     const response = await fetch(NVIDIA_API_URL, {
@@ -166,13 +197,11 @@ async function generateMessageFromAI(subject) {
     if (!response.ok) throw new Error(`API ${response.status}`);
     const data = await response.json();
     const raw = data.choices[0].message.content.trim();
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No JSON');
-    const parsed = JSON.parse(jsonMatch[0]);
-    return { en: parsed.en || '...', pt: parsed.pt || '...' };
+    const result = parseJsonResponse(raw);
+    if (!result) throw new Error('No JSON');
+    return result;
   } catch (err) {
     console.error('[API ERROR] generateMessageFromAI:', err.message);
-    addSignal(`⚠ API error: ${err.message.slice(0, 40)}`);
     const enTemplates = messageTemplates[archetype].en;
     const ptTemplates = messageTemplates[archetype].pt;
     const i = Math.floor(Math.random() * enTemplates.length);
@@ -203,12 +232,11 @@ async function callAI(systemPromptEN, systemPromptPT) {
     if (!response.ok) throw new Error(`API ${response.status}`);
     const data = await response.json();
     const raw = data.choices[0].message.content.trim();
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No JSON');
-    const parsed = JSON.parse(jsonMatch[0]);
-    return { en: parsed.en || '...', pt: parsed.pt || '...' };
+    const result = parseJsonResponse(raw);
+    if (!result) throw new Error('No JSON');
+    return result;
   } catch (err) {
-    console.warn('AI fallback:', err.message);
+    console.warn('AI fallback callAI:', err.message);
     return { en: '...', pt: '...' };
   }
 }

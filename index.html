@@ -76,6 +76,18 @@
     </footer>
   </div>
 
+  <!-- Probe Modal -->
+  <div id="probeModal" class="result-overlay" style="display:none">
+    <div class="result-card probe-card">
+      <div class="result-title probe-title" id="probeModalTitle">PROBE</div>
+      <textarea id="probeInput" class="probe-input" rows="3" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitProbe();}"></textarea>
+      <div class="probe-buttons">
+        <button onclick="closeProbeModal()" class="probe-btn-cancel" id="probe-cancel">CANCEL</button>
+        <button onclick="submitProbe()" class="probe-btn-send" id="probe-send">▸ SEND</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Result Overlay -->
   <div id="resultOverlay" class="result-overlay" style="display:none">
     <div class="result-card">

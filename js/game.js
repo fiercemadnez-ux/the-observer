@@ -5,7 +5,7 @@ let pendingChatMessage = false;
 function startChatLoop() {
   stopChatLoop();
   // First message after 3s, then every 9-14s
-  const delay = 1000 + Math.random() * 1000;
+  const delay = 4000 + Math.random() * 2000;
   chatLoopTimer = setTimeout(autoChat, delay);
 }
 
@@ -35,7 +35,7 @@ async function autoChat() {
   showNewMessageBadge();
 
   // Schedule next message
-  const nextDelay = 4000 + Math.random() * 3000;
+  const nextDelay = 12000 + Math.random() * 8000;
   chatLoopTimer = setTimeout(autoChat, nextDelay);
 }
 
@@ -156,15 +156,78 @@ function isolateSubject() {
   render();
 }
 
-async function probeSubject() {
+function probeSubject() {
   if (state.caseResolved) return;
   if (!state.selectedSubject) return addSignal(i18n[state.lang].sig_no_subject);
   const s = state.subjects.find(sub => sub.id === state.selectedSubject);
+  showProbeModal(s);
+}
+
+function showProbeModal(subject) {
+  const modal = document.getElementById('probeModal');
+  const title = document.getElementById('probeModalTitle');
+  const input = document.getElementById('probeInput');
+  const t = i18n[state.lang];
+  title.textContent = `${t.probe_target}: ${subject.id} // ${subject.name}`;
+  input.value = '';
+  input.placeholder = t.probe_placeholder;
+  modal.style.display = 'flex';
+  input.focus();
+  // Store target
+  modal.dataset.subjectId = subject.id;
+}
+
+async function submitProbe() {
+  const modal = document.getElementById('probeModal');
+  const input = document.getElementById('probeInput');
+  const question = input.value.trim();
+  if (!question) return;
+
+  const subjectId = modal.dataset.subjectId;
+  const s = state.subjects.find(sub => sub.id === subjectId);
+  closeProbeModal();
+
+  if (!s) return;
+
+  const isGuilty = state.currentCase && s.id === state.currentCase.guiltyId;
+  const lang = state.lang;
+
+  // Add the player's question as a system message
+  state.messages.push({
+    id: `MSG-${String(state.messages.length + 1).padStart(4, '0')}`,
+    subjectId: 'OBSERVER',
+    texts: { en: `[TO ${s.name}]: ${question}`, pt: `[PARA ${s.name}]: ${question}` },
+    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    flagged: false,
+    isObserver: true
+  });
+  renderMessages();
+
+  const enPrompt =
+    `You are ${s.name} in a cyberpunk group chat. Archetype: ${archetypePrompts.en[s.archetype]}` +
+    (isGuilty ? ' You committed a crime and are hiding it.' : '') +
+    ` Someone just directly asked you: "${question}". Respond in character. 1-3 sentences.`;
+  const ptPrompt =
+    `Você é ${s.name} em um chat cyberpunk. Arquétipo: ${archetypePrompts.pt[s.archetype]}` +
+    (isGuilty ? ' Você cometeu um crime e está escondendo.' : '') +
+    ` Alguém acabou de te perguntar diretamente: "${question}". Responda no personagem. 1-3 frases.`;
+
   const typingId = addTypingIndicator(s);
-  const msg = await generateMessage(s);
+  const texts = await callAI(enPrompt, ptPrompt);
   removeTypingIndicator(typingId);
-  state.messages.push(msg);
+
+  state.messages.push({
+    id: `MSG-${String(state.messages.length + 1).padStart(4, '0')}`,
+    subjectId: s.id, texts,
+    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    flagged: isGuilty && Math.random() > 0.5
+  });
+  addSignal(`${i18n[lang].sig_probed}: ${s.id}`);
   render();
+}
+
+function closeProbeModal() {
+  document.getElementById('probeModal').style.display = 'none';
 }
 
 // --- ACCUSATION ---

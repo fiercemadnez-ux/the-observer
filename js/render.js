@@ -24,10 +24,11 @@ function renderMessages() {
   container.innerHTML = state.messages.map(msg => {
     const s = state.subjects.find(sub => sub.id === msg.subjectId);
     const text = msg.texts ? (msg.texts[state.lang] || msg.texts.en) : (msg.text || '');
+    const isObserver = msg.isObserver;
     return `
-      <div class="message" onclick="selectSubject('${msg.subjectId}')">
+      <div class="message ${isObserver ? 'message-observer' : ''}" ${!isObserver ? `onclick="selectSubject('${msg.subjectId}')"` : ''}>
         <div class="message-header">
-          <span class="message-id">${msg.subjectId} // ${s ? s.name : '???'}</span>
+          <span class="message-id">${isObserver ? '// OBSERVER' : `${msg.subjectId} // ${s ? s.name : '???'}`}</span>
           <span class="message-timestamp">${msg.timestamp}</span>
         </div>
         <div class="message-body">${text}</div>
@@ -105,6 +106,8 @@ function render() {
   document.getElementById('label-reputation').textContent = t.reputationLabel;
   document.getElementById('label-crime').textContent = t.crime_label;
   document.getElementById('action-hint').textContent = t.action_hint;
+  document.getElementById('probe-send').textContent = t.probe_send;
+  document.getElementById('probe-cancel').textContent = t.probe_cancel;
 
   // Update crime description in current language
   if (state.currentCase) {

@@ -259,6 +259,60 @@ footer {
 .rank-loss .rank-top { color: var(--danger); }
 .rank-crime { color: var(--text-dim); font-size: 0.68rem; }
 
+/* Observer message (player probe) */
+.message-observer {
+  border-left-color: var(--info) !important;
+  background: rgba(68, 136, 255, 0.04) !important;
+}
+.message-observer .message-id { color: var(--info) !important; }
+.message-observer .message-body { color: var(--info) !important; font-style: italic; }
+
+/* Probe modal */
+.probe-card {
+  border-color: var(--info) !important;
+  box-shadow: 0 0 40px rgba(68, 136, 255, 0.15) !important;
+  text-align: left !important;
+}
+.probe-title {
+  color: var(--info) !important;
+  font-size: 0.85rem !important;
+  margin-bottom: 15px;
+  letter-spacing: 0.15em;
+}
+.probe-input {
+  width: 100%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--text-dim);
+  color: var(--text-primary);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.85rem;
+  padding: 10px;
+  resize: none;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+.probe-input:focus {
+  outline: none;
+  border-color: var(--info);
+}
+.probe-buttons {
+  display: flex;
+  gap: 10px;
+}
+.probe-btn-cancel {
+  flex: 1;
+  border-color: var(--text-dim) !important;
+  color: var(--text-dim) !important;
+}
+.probe-btn-send {
+  flex: 2;
+  border-color: var(--info) !important;
+  color: var(--info) !important;
+}
+.probe-btn-send:hover {
+  background: rgba(68, 136, 255, 0.1) !important;
+}
+
 /* Result overlay */
 .result-overlay {
   position: fixed; inset: 0;

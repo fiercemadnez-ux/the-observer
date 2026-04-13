@@ -384,3 +384,108 @@ mark.kw-highlight {
   border-color: var(--accent);
   color: var(--accent);
 }
+
+/* =====================
+   MOBILE RESPONSIVE
+   ===================== */
+@media (max-width: 700px) {
+  body {
+    overflow: auto;
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    padding: 10px;
+    gap: 10px;
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .header-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .logo {
+    font-size: 1.1rem;
+  }
+
+  .status-bar {
+    gap: 15px;
+    font-size: 0.72rem;
+    flex-wrap: wrap;
+  }
+
+  .terminal {
+    min-height: 55vh;
+    max-height: 60vh;
+    overflow: hidden;
+  }
+
+  .terminal-content {
+    font-size: 0.8rem;
+  }
+
+  .side-panel {
+    overflow-y: visible;
+    gap: 10px;
+  }
+
+  .panel {
+    padding: 12px;
+  }
+
+  .signal-log {
+    max-height: 120px;
+  }
+
+  .ranking-list {
+    max-height: 130px;
+  }
+
+  .action-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .action-panel .action-hint {
+    grid-column: 1 / -1;
+  }
+
+  .btn-accuse {
+    grid-column: 1 / -1;
+    margin-top: 0;
+  }
+
+  button {
+    padding: 12px 10px;
+    font-size: 0.75rem;
+  }
+
+  footer {
+    flex-direction: column;
+    gap: 5px;
+    font-size: 0.7rem;
+    padding: 10px;
+  }
+
+  .result-card {
+    padding: 25px 18px;
+    width: 95%;
+  }
+
+  .result-title {
+    font-size: 1.1rem;
+  }
+}

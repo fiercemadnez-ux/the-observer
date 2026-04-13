@@ -259,6 +259,24 @@ footer {
 .rank-loss .rank-top { color: var(--danger); }
 .rank-crime { color: var(--text-dim); font-size: 0.68rem; }
 
+/* Selected message highlight */
+.message-selected {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Clue reveal */
+.message-clue {
+  background: rgba(255, 170, 0, 0.06) !important;
+  border-left-color: var(--warning) !important;
+}
+.message-clue-label {
+  margin-top: 6px;
+  font-size: 0.65rem;
+  color: var(--warning);
+  letter-spacing: 0.1em;
+  animation: pulse 1.5s infinite;
+}
+
 /* Observer message (player probe) */
 .message-observer {
   border-left-color: var(--info) !important;

@@ -46,15 +46,26 @@ function showNewMessageBadge() {
   if (badge) badge.style.display = 'block';
 }
 
+const SUBJECT_COLORS = [
+  '#00ff88', // green (accent)
+  '#4488ff', // blue
+  '#ffaa00', // amber
+  '#ff66cc', // pink
+  '#aa88ff', // purple
+  '#00ccff', // cyan
+];
+
 function generateSubject() {
   const types = Object.keys(messageTemplates);
   const archetype = types[Math.floor(Math.random() * types.length)];
+  const color = SUBJECT_COLORS[state.subjects.length % SUBJECT_COLORS.length];
   return {
     id: `SUB-${String(state.subjects.length + 1).padStart(3, '0')}`,
     name: generateName(),
     archetype,
     trust: 50,
-    status: 'unknown'
+    status: 'unknown',
+    color
   };
 }
 
@@ -341,15 +352,39 @@ function showResult(win, accused) {
   title.style.color = win ? 'var(--accent)' : 'var(--danger)';
 
   if (win) {
+    // Mark clue messages in the chat
+    revealClues();
+
+    const clueCount = state.messages.filter(m => m.isClue).length;
     body.innerHTML = `
-      <div style="margin-bottom:10px; color: var(--text-secondary); font-size:0.8rem">${t.crime_label}: ${state.currentCase.crime}</div>
-      <div style="color: var(--accent)">${t.result_guilty_label}: ${accused.id} // ${accused.name}</div>
-      <div style="margin-top:10px; color: var(--text-dim); font-size:0.75rem">${t.result_day_label} ${String(state.day).padStart(3,'0')} — ${t.result_acc_label}: ${state.accusationCount}</div>
+      <div style="margin-bottom:10px; color: var(--text-secondary); font-size:0.8rem">${t.crime_label}: ${state.currentCase.crime[state.lang]}</div>
+      <div style="color: var(--accent); margin-bottom:8px">${t.result_guilty_label}: ${accused.id} // ${accused.name}</div>
+      ${clueCount > 0 ? `<div style="color: var(--warning); font-size:0.75rem; margin-bottom:8px">▸ ${clueCount} signal${clueCount > 1 ? 's' : ''} detected in the transcript</div>` : ''}
+      <div style="color: var(--text-dim); font-size:0.75rem">${t.result_day_label} ${String(state.day).padStart(3,'0')} — ${t.result_acc_label}: ${state.accusationCount}</div>
     `;
   }
 
   nextBtn.textContent = t.next_day;
   overlay.style.display = 'flex';
+}
+
+function revealClues() {
+  if (!state.currentCase) return;
+  const guiltyId = state.currentCase.guiltyId;
+
+  // Mark flagged messages from the guilty subject as clues
+  state.messages.forEach(msg => {
+    if (msg.subjectId === guiltyId && msg.flagged) {
+      msg.isClue = true;
+    }
+  });
+
+  // Also mark a few random guilty messages as clues (subtle signals)
+  const guiltyMsgs = state.messages.filter(m => m.subjectId === guiltyId && !m.isClue && !m.isObserver);
+  const toMark = Math.min(2, guiltyMsgs.length);
+  guiltyMsgs.slice(0, toMark).forEach(m => m.isClue = true);
+
+  renderMessages();
 }
 
 // --- NEXT DAY ---

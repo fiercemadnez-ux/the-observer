@@ -25,14 +25,20 @@ function renderMessages() {
     const s = state.subjects.find(sub => sub.id === msg.subjectId);
     const text = msg.texts ? (msg.texts[state.lang] || msg.texts.en) : (msg.text || '');
     const isObserver = msg.isObserver;
+    const color = isObserver ? 'var(--info)' : (s ? s.color : 'var(--text-dim)');
+    const isSelected = s && s.id === state.selectedSubject;
+    const isClue = msg.isClue;
     return `
-      <div class="message ${isObserver ? 'message-observer' : ''}" ${!isObserver ? `onclick="selectSubject('${msg.subjectId}')"` : ''}>
+      <div class="message ${isObserver ? 'message-observer' : ''} ${isSelected ? 'message-selected' : ''} ${isClue ? 'message-clue' : ''}" 
+           style="border-left-color: ${color}" 
+           ${!isObserver ? `onclick="selectSubject('${msg.subjectId}')"` : ''}>
         <div class="message-header">
-          <span class="message-id">${isObserver ? '// OBSERVER' : `${msg.subjectId} // ${s ? s.name : '???'}`}</span>
+          <span class="message-id" style="color: ${color}">${isObserver ? '// OBSERVER' : `${msg.subjectId} // ${s ? s.name : '???'}`}</span>
           <span class="message-timestamp">${msg.timestamp}</span>
         </div>
         <div class="message-body">${text}</div>
         ${msg.flagged ? `<div class="message-flag">${i18n[state.lang].flagged}</div>` : ''}
+        ${isClue ? `<div class="message-clue-label">▸ SIGNAL DETECTED</div>` : ''}
       </div>`;
   }).join('');
 
@@ -45,8 +51,13 @@ function renderSubjects() {
   container.innerHTML = state.subjects.map(s => {
     const isSelected = s.id === state.selectedSubject;
     return `
-      <div class="subject ${isSelected ? 'subject-selected' : ''}" onclick="selectSubject('${s.id}')">
-        <span class="subject-name">${s.id} // ${s.name}</span>
+      <div class="subject ${isSelected ? 'subject-selected' : ''}" 
+           style="border-left: 3px solid ${s.color || 'var(--text-dim)'}" 
+           onclick="selectSubject('${s.id}')">
+        <div>
+          <div style="color: ${s.color || 'var(--text-primary)'}; font-size: 0.78rem">${s.id} // ${s.name}</div>
+          <div style="color: var(--text-dim); font-size: 0.65rem; margin-top:2px">${s.archetype.replace(/_/g, ' ').toUpperCase()}</div>
+        </div>
         <span class="subject-status status-${s.status}">${t['status_' + s.status]}</span>
       </div>`;
   }).join('');

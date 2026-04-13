@@ -187,6 +187,35 @@ footer {
 
 .day-counter { color: var(--accent); }
 
+/* New message badge */
+.new-msg-badge {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: var(--bg-primary);
+  font-size: 0.7rem;
+  padding: 4px 14px;
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.1em;
+  z-index: 100;
+  animation: pulse 1.5s infinite;
+}
+
+.terminal { position: relative; }
+
+/* Action hint */
+.action-hint {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+  line-height: 1.5;
+  border-left: 2px solid var(--bg-tertiary);
+  padding-left: 8px;
+}
+
 /* Case info bar */
 .case-info {
   padding: 8px 15px;

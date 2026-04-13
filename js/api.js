@@ -87,35 +87,36 @@ const archetypePrompts = {
   }
 };
 
-async function generateMessageFromAI(subject, contextMessages = []) {
+async function generateMessageFromAI(subject) {
   const archetype = subject.archetype;
   const isGuilty = state.currentCase && subject.id === state.currentCase.guiltyId;
 
+  // Build recent chat log (all subjects, last 8 messages)
+  const recentLog = state.messages.slice(-8).map(msg => {
+    const speaker = state.subjects.find(s => s.id === msg.subjectId);
+    const text = msg.texts ? msg.texts.en : (msg.text || '');
+    return `${speaker ? speaker.name : msg.subjectId}: ${text}`;
+  }).join('\n');
+
   const guiltyExtra = isGuilty
-    ? ' You committed a crime and are hiding it. Add subtle tension to what you say, but do not confess. / Você cometeu um crime e está tentando esconder. Adicione tensão sutil, mas não confesse.'
+    ? ' You committed a crime and are hiding it. Add subtle tension, but never confess directly.'
     : '';
 
   let clueHint = '';
-  if (state.currentCase && state.currentCase.clues.length > 0) {
+  if (isGuilty && state.currentCase && state.currentCase.clues.length > 0) {
     clueHint = state.currentCase.clues[Math.floor(Math.random() * state.currentCase.clues.length)];
   }
-
-  const clueExtra = clueHint
-    ? ` Your message may indirectly allude to: "${clueHint}".`
-    : '';
+  const clueExtra = clueHint ? ` Subtly allude to: "${clueHint}".` : '';
 
   const systemPrompt =
-    `You are a character in a cyberpunk investigation terminal game.\n` +
-    `Archetype EN: ${archetypePrompts.en[archetype]}\n` +
-    `Archetype PT: ${archetypePrompts.pt[archetype]}\n` +
+    `You are a character named ${subject.name} in a live group chat inside a cyberpunk surveillance terminal.\n` +
+    `Your personality (EN): ${archetypePrompts.en[archetype]}\n` +
+    `Your personality (PT): ${archetypePrompts.pt[archetype]}\n` +
     guiltyExtra + clueExtra + `\n` +
-    `Reply ONLY with a JSON object like: {"en": "<english text>", "pt": "<portuguese text>"}\n` +
-    `Keep each text short and in-character. No extra keys, no markdown.`;
-
-  const history = contextMessages.slice(-4).map(msg => ({
-    role: 'assistant',
-    content: JSON.stringify(msg.texts || { en: msg.text, pt: msg.text })
-  }));
+    `The recent chat history is:\n${recentLog || '(no messages yet)'}\n\n` +
+    `Write your next message in this chat. React naturally to what others said if relevant.\n` +
+    `Reply ONLY with JSON: {"en": "<your message in English>", "pt": "<your message in Portuguese>"}\n` +
+    `Keep it short, natural, in-character. No stage directions. No markdown.`;
 
   try {
     const response = await fetch(NVIDIA_API_URL, {
@@ -126,11 +127,7 @@ async function generateMessageFromAI(subject, contextMessages = []) {
       },
       body: JSON.stringify({
         model: NVIDIA_MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...history,
-          { role: 'user', content: 'Stay in character. Respond with JSON only.' }
-        ],
+        messages: [{ role: 'user', content: systemPrompt }],
         max_tokens: 150,
         temperature: 0.95,
         stream: false

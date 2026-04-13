@@ -2,6 +2,21 @@ function isScrolledToBottom(el) {
   return el.scrollHeight - el.scrollTop - el.clientHeight < 40;
 }
 
+function scrollToBottom() {
+  const container = document.getElementById('messageStream');
+  container.scrollTop = container.scrollHeight;
+  const badge = document.getElementById('newMsgBadge');
+  if (badge) badge.style.display = 'none';
+}
+
+function onChatScroll() {
+  const container = document.getElementById('messageStream');
+  if (isScrolledToBottom(container)) {
+    const badge = document.getElementById('newMsgBadge');
+    if (badge) badge.style.display = 'none';
+  }
+}
+
 function renderMessages() {
   const container = document.getElementById('messageStream');
   const shouldScroll = isScrolledToBottom(container);
@@ -89,6 +104,7 @@ function render() {
   document.getElementById('footer-version').textContent = t.footer;
   document.getElementById('label-reputation').textContent = t.reputationLabel;
   document.getElementById('label-crime').textContent = t.crime_label;
+  document.getElementById('action-hint').textContent = t.action_hint;
 
   // Update crime description in current language
   if (state.currentCase) {

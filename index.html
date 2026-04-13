@@ -35,7 +35,8 @@
       <div id="caseInfo" class="case-info" style="display:none">
         <span id="label-crime">INCIDENT</span>: <span id="crimeDescription"></span>
       </div>
-      <div class="terminal-content" id="messageStream"></div>
+      <div class="terminal-content" id="messageStream" onscroll="onChatScroll()"></div>
+      <div id="newMsgBadge" class="new-msg-badge" style="display:none" onclick="scrollToBottom()">▼ new messages</div>
     </main>
 
     <aside class="side-panel">
@@ -51,6 +52,7 @@
 
       <div class="panel">
         <div class="panel-title" id="title-actions">Actions</div>
+        <div class="action-hint" id="action-hint">Select a subject from the list or click a message to target them.</div>
         <div class="action-panel">
           <button onclick="exposeSubject()" id="btn-expose">▸ EXPOSE selected</button>
           <button onclick="pressureSubject()" id="btn-pressure">▸ PRESSURE subject</button>

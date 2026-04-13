@@ -1,3 +1,51 @@
+// --- AUTO CHAT LOOP ---
+let chatLoopTimer = null;
+let pendingChatMessage = false;
+
+function startChatLoop() {
+  stopChatLoop();
+  // First message after 3s, then every 9-14s
+  const delay = 3000 + Math.random() * 2000;
+  chatLoopTimer = setTimeout(autoChat, delay);
+}
+
+function stopChatLoop() {
+  if (chatLoopTimer) { clearTimeout(chatLoopTimer); chatLoopTimer = null; }
+}
+
+async function autoChat() {
+  if (state.caseResolved) return;
+  if (pendingChatMessage) {
+    chatLoopTimer = setTimeout(autoChat, 3000);
+    return;
+  }
+
+  pendingChatMessage = true;
+  // Pick a random subject (weighted: guilty speaks a bit less)
+  const candidates = state.subjects.filter(s => s.status !== 'ally');
+  const subject = candidates[Math.floor(Math.random() * candidates.length)] || state.subjects[0];
+
+  const typingId = addTypingIndicator(subject);
+  const msg = await generateMessage(subject);
+  removeTypingIndicator(typingId);
+  state.messages.push(msg);
+  pendingChatMessage = false;
+
+  renderMessages();
+  showNewMessageBadge();
+
+  // Schedule next message
+  const nextDelay = 9000 + Math.random() * 5000;
+  chatLoopTimer = setTimeout(autoChat, nextDelay);
+}
+
+function showNewMessageBadge() {
+  const container = document.getElementById('messageStream');
+  if (isScrolledToBottom(container)) return; // already at bottom, no badge needed
+  const badge = document.getElementById('newMsgBadge');
+  if (badge) badge.style.display = 'block';
+}
+
 function generateSubject() {
   const types = Object.keys(messageTemplates);
   const archetype = types[Math.floor(Math.random() * types.length)];
@@ -177,6 +225,7 @@ function showResult(win, accused) {
 
 async function nextDay() {
   document.getElementById('resultOverlay').style.display = 'none';
+  stopChatLoop();
   state.day++;
   state.subjects = [];
   state.messages = [];
@@ -219,12 +268,19 @@ async function startNewCase() {
   addSignal(i18n[state.lang].sig_new_case);
   render();
 
-  // Generate initial messages in parallel
-  const typingIds = state.subjects.map(s => addTypingIndicator(s));
-  const messages = await Promise.all(state.subjects.map(s => generateMessage(s)));
-  typingIds.forEach(id => removeTypingIndicator(id));
-  messages.forEach(m => state.messages.push(m));
+  // Generate initial 2 messages sequentially to seed the conversation
+  for (let i = 0; i < 2; i++) {
+    const s = state.subjects[i];
+    const typingId = addTypingIndicator(s);
+    const msg = await generateMessage(s);
+    removeTypingIndicator(typingId);
+    state.messages.push(msg);
+    renderMessages();
+  }
   render();
+
+  // Start autonomous chat loop
+  startChatLoop();
 }
 
 // --- RANKING PERSISTENCE ---

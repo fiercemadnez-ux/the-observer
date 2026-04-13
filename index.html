@@ -22,11 +22,7 @@
       --scanline: rgba(0, 255, 136, 0.03);
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'IBM Plex Mono', monospace;
@@ -36,22 +32,12 @@
       overflow-x: hidden;
     }
 
-    /* CRT Scanline Effect */
     body::before {
       content: '';
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0; width: 100%; height: 100%;
       pointer-events: none;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        var(--scanline) 2px,
-        var(--scanline) 4px
-      );
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--scanline) 2px, var(--scanline) 4px);
       z-index: 9999;
     }
 
@@ -66,7 +52,6 @@
       min-height: 100vh;
     }
 
-    /* Header */
     header {
       grid-column: 1 / -1;
       display: flex;
@@ -86,6 +71,22 @@
       text-shadow: 0 0 10px var(--accent-dim);
     }
 
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .lang-selector select {
+      background: var(--bg-tertiary);
+      color: var(--accent);
+      border: 1px solid var(--accent-dim);
+      padding: 5px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+
     .status-bar {
       display: flex;
       gap: 30px;
@@ -93,32 +94,21 @@
       color: var(--text-secondary);
     }
 
-    .status-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .status-item { display: flex; align-items: center; gap: 8px; }
 
     .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
+      width: 8px; height: 8px; border-radius: 50%;
       background: var(--accent);
       box-shadow: 0 0 8px var(--accent);
       animation: pulse 2s infinite;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-    /* Main Terminal Area */
     .terminal {
       background: var(--bg-secondary);
       border: 1px solid var(--bg-tertiary);
-      display: flex;
-      flex-direction: column;
+      display: flex; flex-direction: column;
       min-height: 500px;
     }
 
@@ -133,20 +123,18 @@
     }
 
     .terminal-content {
-      flex: 1;
-      padding: 15px;
+      flex: 1; padding: 15px;
       overflow-y: auto;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.9rem;
-      line-height: 1.6;
+      font-size: 0.9rem; line-height: 1.6;
     }
 
-    /* Messages Stream */
     .message {
       margin-bottom: 20px;
       padding: 10px;
       border-left: 2px solid var(--text-dim);
       transition: all 0.3s ease;
+      cursor: pointer;
     }
 
     .message:hover {
@@ -155,559 +143,308 @@
     }
 
     .message-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 5px;
-      font-size: 0.75rem;
-      color: var(--text-dim);
+      display: flex; justify-content: space-between;
+      margin-bottom: 5px; font-size: 0.75rem; color: var(--text-dim);
     }
 
-    .message-id {
-      color: var(--info);
-    }
-
-    .message-timestamp {
-      color: var(--text-dim);
-    }
-
-    .message-body {
-      color: var(--text-primary);
-    }
-
+    .message-id { color: var(--info); }
+    .message-body { color: var(--text-primary); }
     .message-flag {
-      display: inline-block;
-      margin-top: 5px;
-      padding: 2px 8px;
-      font-size: 0.65rem;
-      background: rgba(255, 68, 68, 0.2);
-      color: var(--danger);
-      border-radius: 2px;
+      display: inline-block; margin-top: 5px; padding: 2px 8px;
+      font-size: 0.65rem; background: rgba(255, 68, 68, 0.2); color: var(--danger);
     }
 
-    /* Side Panel */
-    .side-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .panel {
-      background: var(--bg-secondary);
-      border: 1px solid var(--bg-tertiary);
-      padding: 15px;
-    }
-
+    .side-panel { display: flex; flex-direction: column; gap: 15px; }
+    .panel { background: var(--bg-secondary); border: 1px solid var(--bg-tertiary); padding: 15px; }
     .panel-title {
-      font-size: 0.7rem;
-      color: var(--text-dim);
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      margin-bottom: 15px;
-      padding-bottom: 10px;
+      font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.15em;
+      text-transform: uppercase; margin-bottom: 15px; padding-bottom: 10px;
       border-bottom: 1px solid var(--bg-tertiary);
     }
 
-    /* Analysis Board */
-    .analysis-board {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
     .subject {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 10px;
-      background: var(--bg-tertiary);
-      font-size: 0.8rem;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 10px; background: var(--bg-tertiary); font-size: 0.8rem;
+      margin-bottom: 5px; cursor: pointer;
     }
 
-    .subject-name {
-      color: var(--text-primary);
-    }
+    .status-ally { background: rgba(0, 255, 136, 0.2); color: var(--accent); }
+    .status-suspect { background: rgba(255, 170, 0, 0.2); color: var(--warning); }
+    .status-threat { background: rgba(255, 68, 68, 0.2); color: var(--danger); }
+    .status-unknown { background: rgba(136, 136, 136, 0.2); color: var(--text-secondary); }
 
-    .subject-status {
-      padding: 2px 8px;
-      font-size: 0.65rem;
-      border-radius: 2px;
-    }
+    .signal-log { display: flex; flex-direction: column; gap: 5px; max-height: 200px; overflow-y: auto; }
+    .signal { font-size: 0.75rem; color: var(--text-secondary); padding: 5px; border-left: 2px solid var(--text-dim); }
+    .signal.new { border-left-color: var(--accent); color: var(--accent); }
 
-    .status-ally {
-      background: rgba(0, 255, 136, 0.2);
-      color: var(--accent);
-    }
-
-    .status-suspect {
-      background: rgba(255, 170, 0, 0.2);
-      color: var(--warning);
-    }
-
-    .status-threat {
-      background: rgba(255, 68, 68, 0.2);
-      color: var(--danger);
-    }
-
-    .status-unknown {
-      background: rgba(136, 136, 136, 0.2);
-      color: var(--text-secondary);
-    }
-
-    /* Signal Log */
-    .signal-log {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-
-    .signal {
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-      padding: 5px;
-      border-left: 2px solid var(--text-dim);
-    }
-
-    .signal.new {
-      border-left-color: var(--accent);
-      color: var(--accent);
-    }
-
-    /* Action Panel */
-    .action-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
+    .action-panel { display: flex; flex-direction: column; gap: 10px; }
     button {
-      font-family: 'IBM Plex Mono', monospace;
-      padding: 10px 15px;
-      background: var(--bg-tertiary);
-      border: 1px solid var(--text-dim);
-      color: var(--text-primary);
-      cursor: pointer;
-      font-size: 0.8rem;
-      transition: all 0.2s ease;
-      text-align: left;
+      font-family: 'IBM Plex Mono', monospace; padding: 10px 15px;
+      background: var(--bg-tertiary); border: 1px solid var(--text-dim);
+      color: var(--text-primary); cursor: pointer; font-size: 0.8rem; text-align: left;
     }
+    button:hover { border-color: var(--accent); color: var(--accent); }
 
-    button:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      box-shadow: 0 0 10px rgba(0, 255, 136, 0.1);
-    }
-
-    button.danger:hover {
-      border-color: var(--danger);
-      color: var(--danger);
-      box-shadow: 0 0 10px rgba(255, 68, 68, 0.1);
-    }
-
-    /* Footer */
     footer {
-      grid-column: 1 / -1;
-      padding: 15px 20px;
-      background: var(--bg-secondary);
-      border: 1px solid var(--bg-tertiary);
-      font-size: 0.75rem;
-      color: var(--text-dim);
-      display: flex;
-      justify-content: space-between;
+      grid-column: 1 / -1; padding: 15px 20px;
+      background: var(--bg-secondary); border: 1px solid var(--bg-tertiary);
+      font-size: 0.75rem; color: var(--text-dim); display: flex; justify-content: space-between;
     }
 
-    .day-counter {
-      color: var(--accent);
-    }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: var(--bg-primary);
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--bg-tertiary);
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--text-dim);
-    }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-      .container {
-        grid-template-columns: 1fr;
-      }
-    }
+    .day-counter { color: var(--accent); }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
       <div class="logo">THE OBSERVER</div>
-      <div class="status-bar">
-        <div class="status-item">
-          <div class="status-dot"></div>
-          <span>ONLINE</span>
+      <div class="header-controls">
+        <div class="lang-selector">
+          <select id="langSelect" onchange="changeLanguage(this.value)">
+            <option value="en">ENGLISH</option>
+            <option value="pt">PORTUGUÊS</option>
+          </select>
         </div>
-        <div class="status-item">
-          <span>DAY</span>
-          <span class="day-counter" id="dayCounter">001</span>
+        <div class="status-bar">
+          <div class="status-item">
+            <div class="status-dot"></div>
+            <span id="label-online">ONLINE</span>
+          </div>
+          <div class="status-item">
+            <span id="label-day">DAY</span>
+            <span class="day-counter" id="dayCounter">001</span>
+          </div>
         </div>
       </div>
     </header>
 
     <main class="terminal">
-      <div class="terminal-header">
-        ▸ INCOMING TRANSMISSIONS // TERMINAL_07
-      </div>
-      <div class="terminal-content" id="messageStream">
-        <!-- Messages will be injected here -->
-      </div>
+      <div class="terminal-header" id="terminal-title">▸ INCOMING TRANSMISSIONS // TERMINAL_07</div>
+      <div class="terminal-content" id="messageStream"></div>
     </main>
 
     <aside class="side-panel">
       <div class="panel">
-        <div class="panel-title">Subject Analysis</div>
-        <div class="analysis-board" id="subjectBoard">
-          <!-- Subject cards will be injected here -->
-        </div>
+        <div class="panel-title" id="title-analysis">Subject Analysis</div>
+        <div class="analysis-board" id="subjectBoard"></div>
       </div>
 
       <div class="panel">
-        <div class="panel-title">Signal Log</div>
-        <div class="signal-log" id="signalLog">
-          <!-- Signals will be injected here -->
-        </div>
+        <div class="panel-title" id="title-signals">Signal Log</div>
+        <div class="signal-log" id="signalLog"></div>
       </div>
 
       <div class="panel">
-        <div class="panel-title">Actions</div>
+        <div class="panel-title" id="title-actions">Actions</div>
         <div class="action-panel">
-          <button onclick="exposeSubject()">▸ EXPOSE selected</button>
-          <button onclick="pressureSubject()">▸ PRESSURE subject</button>
-          <button onclick="plantDoubt()">▸ PLANT doubt</button>
-          <button onclick="isolateSubject()">▸ ISOLATE target</button>
-          <button onclick="observeMore()">▸ OBSERVE mode</button>
+          <button onclick="exposeSubject()" id="btn-expose">▸ EXPOSE selected</button>
+          <button onclick="pressureSubject()" id="btn-pressure">▸ PRESSURE subject</button>
+          <button onclick="plantDoubt()" id="btn-doubt">▸ PLANT doubt</button>
+          <button onclick="isolateSubject()" id="btn-isolate">▸ ISOLATE target</button>
+          <button onclick="observeMore()" id="btn-observe">▸ OBSERVE mode</button>
         </div>
       </div>
     </aside>
 
     <footer>
-      <span>SYSTEM v0.1.0 // OBSERVATION PROTOCOL ACTIVE</span>
-      <span>REPUTATION: <span id="reputation">NEUTRAL</span></span>
+      <span id="footer-version">SYSTEM v0.1.0 // OBSERVATION PROTOCOL ACTIVE</span>
+      <span><span id="label-reputation">REPUTATION</span>: <span id="reputation">NEUTRAL</span></span>
     </footer>
   </div>
 
   <script>
-    // Game State
+    const i18n = {
+      en: {
+        online: "ONLINE", day: "DAY", terminal: "▸ INCOMING TRANSMISSIONS // TERMINAL_07",
+        analysis: "Subject Analysis", signals: "Signal Log", actions: "Actions",
+        btnExpose: "▸ EXPOSE selected", btnPressure: "▸ PRESSURE subject", btnDoubt: "▸ PLANT doubt",
+        btnIsolate: "▸ ISOLATE target", btnObserve: "▸ OBSERVE mode",
+        footer: "SYSTEM v0.1.0 // OBSERVATION PROTOCOL ACTIVE", reputationLabel: "REPUTATION",
+        rep_neutral: "NEUTRAL", rep_respected: "RESPECTED", rep_known: "KNOWN", rep_suspicious: "SUSPICIOUS", rep_compromised: "COMPROMISED",
+        status_ally: "ALLY", status_threat: "THREAT", status_suspect: "SUSPECT", status_unknown: "UNKNOWN",
+        sig_no_subject: "No subject selected", sig_selected: "Selected subject", sig_exposed: "EXPOSED",
+        sig_pressure: "PRESSURE: trust reduced", sig_doubt: "DOUBT planted", sig_isolating: "ISOLATING: reducing contact",
+        sig_new_sub: "New subject detected",
+        msg_pressure_def: "I... I don't know what you're talking about.",
+        msg_doubt_def: "Wait... maybe I'm thinking about this wrong.",
+        flagged: "FLAGGED"
+      },
+      pt: {
+        online: "CONECTADO", day: "DIA", terminal: "▸ TRANSMISSÕES RECEBIDAS // TERMINAL_07",
+        analysis: "Análise de Sujeitos", signals: "Log de Sinais", actions: "Ações",
+        btnExpose: "▸ EXPOR selecionado", btnPressure: "▸ PRESSIONAR sujeito", btnDoubt: "▸ PLANTAR dúvida",
+        btnIsolate: "▸ ISOLAR alvo", btnObserve: "▸ MODO OBSERVAÇÃO",
+        footer: "SISTEMA v0.1.0 // PROTOCOLO DE OBSERVAÇÃO ATIVO", reputationLabel: "REPUTAÇÃO",
+        rep_neutral: "NEUTRA", rep_respected: "RESPEITADA", rep_known: "CONHECIDA", rep_suspicious: "SUSPEITA", rep_compromised: "COMPROMETIDA",
+        status_ally: "ALIADO", status_threat: "AMEAÇA", status_suspect: "SUSPEITO", status_unknown: "DESCONHECIDO",
+        sig_no_subject: "Nenhum sujeito selecionado", sig_selected: "Sujeito selecionado", sig_exposed: "EXPOSTO",
+        sig_pressure: "PRESSÃO: confiança reduzida", sig_doubt: "DÚVIDA plantada", sig_isolating: "ISOLANDO: reduzindo contato",
+        sig_new_sub: "Novo sujeito detectado",
+        msg_pressure_def: "Eu... eu não sei do que você está falando.",
+        msg_doubt_def: "Espere... talvez eu esteja pensando errado sobre isso.",
+        flagged: "MARCADO"
+      }
+    };
+
     const state = {
-      day: 1,
-      reputation: 0,
-      subjects: [],
-      messages: [],
-      signals: [],
-      selectedSubject: null
+      lang: 'en', day: 1, reputation: 0, subjects: [], messages: [], signals: [], selectedSubject: null
     };
 
-    // Name banks for procedural generation
-    const firstNames = [
-      'Alex', 'Morgan', 'Casey', 'Jordan', 'Riley', 'Taylor', 
-      'Quinn', 'Skyler', 'Reese', 'Dakota', 'Avery', 'Phoenix',
-      'Blake', 'Cameron', 'Drew', 'Ellis', 'Finley', 'Harper'
-    ];
-
-    const lastNames = [
-      'Chen', 'Kim', 'Patel', 'Nguyen', 'Morales', 'Singh', 
-      'Williams', 'Garcia', 'Martinez', 'Johnson', 'Lee', 'Brown',
-      'Wilson', 'Davis', 'Miller', 'Taylor', 'Anderson', 'Thomas'
-    ];
-
-    const archetypes = [
-      { type: 'status_seeker', description: 'Wants recognition', signals: ['MENTION', 'BOAST', 'COMPARE'] },
-      { type: 'quiet_one', description: 'Speaks little, watches much', signals: ['SILENCE', 'OBSERVE', 'WAIT'] },
-      { type: 'talker', description: 'Fills silence with words', signals: ['TALK', 'DIVERT', 'AVOID'] },
-      { type: 'drama_creator', description: 'Creates conflict for fun', signals: ['PROVOKE', 'EXAGGERATE', 'TEASE'] },
-      { type: 'hidden_agenda', description: 'Working an angle', signals: ['CLOSE_TOPIC', 'DODGE', 'SHIFT'] },
-      { type: 'true_believer', description: 'Fully committed to cause', signals: ['ABSOLUTE', 'REPEAT', 'ATTACK'] },
-      { type: 'survivor', description: 'Just wants to get by', signals: ['AGREE', 'FADE', 'PRAGMATIC'] },
-      { type: ' manipulator', description: 'Playing everyone', signals: ['FLATTER', 'DIVERT', 'USE'] }
-    ];
-
-    // Sample messages for procedural generation
     const messageTemplates = {
-      status_seeker: [
-        "I've been doing this longer than most of you.",
-        "People usually come to ME for advice on these matters.",
-        "My track record speaks for itself.",
-        "Let me explain how things actually work here..."
-      ],
-      quiet_one: [
-        "...",
-        "I see.",
-        "Interesting.",
-        "Tell me more."
-      ],
-      talker: [
-        "So anyway, what I was saying is...",
-        "This reminds me of when I...",
-        "The craziest thing happened to me last week...",
-        "But seriously, have you guys tried..."
-      ],
-      drama_creator: [
-        "Oh, that's interesting. Tell that to the people from yesterday.",
-        "Sure, I'm SURE that's what happened.",
-        "Some people have all the luck, huh?",
-        "How convenient that you're saying that now."
-      ],
-      hidden_agenda: [
-        "Anyway, let's focus on the main topic.",
-        "I think we're getting distracted here.",
-        "What does this have to do with our objectives?",
-        "We should discuss this in private later."
-      ],
-      true_believer: [
-        "This is the only way forward.",
-        "Those who don't understand are part of the problem.",
-        "We need to be united in this.",
-        "The truth is clear to anyone willing to see."
-      ],
-      survivor: [
-        "Whatever works, I guess.",
-        "I'm just trying to get through the day.",
-        "As long as no one gets hurt, right?",
-        "Let's all just get along here."
-      ],
-      manipulator: [
-        "That's a really interesting perspective. Who taught you that?",
-        "I think you might be right about some things.",
-        "Between you and me, I think we should...",
-        "You're much smarter than the others here."
-      ]
+      status_seeker: { en: ["I've been doing this longer than most.", "My track record speaks for itself."], pt: ["Faço isso há mais tempo que a maioria.", "Meu histórico fala por si só."] },
+      quiet_one: { en: ["...", "Interesting.", "Tell me more."], pt: ["...", "Interessante.", "Me conte mais."] },
+      talker: { en: ["So anyway, what I was saying is...", "This reminds me of when I..."], pt: ["Mas enfim, o que eu estava dizendo...", "Isso me lembra de quando eu..."] },
+      drama_creator: { en: ["Sure, I'm SURE that's what happened.", "How convenient."], pt: ["Claro, tenho CERTEZA que foi isso.", "Que conveniente."] },
+      hidden_agenda: { en: ["Let's focus on the main topic.", "We should discuss this in private."], pt: ["Vamos focar no tópico principal.", "Deveríamos discutir isso em privado."] }
     };
 
-    // Generate a random subject
-    function generateSubject() {
-      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-      const archetype = archetypes[Math.floor(Math.random() * archetypes.length)];
-      const trust = Math.floor(Math.random() * 100);
-      let status = 'unknown';
-      if (trust > 70) status = 'ally';
-      else if (trust < 30) status = 'threat';
-      else if (trust > 40 && trust < 60) status = 'suspect';
+    function changeLanguage(lang) {
+      state.lang = lang;
+      render();
+    }
 
+    function generateSubject() {
+      const types = Object.keys(messageTemplates);
+      const archetype = types[Math.floor(Math.random() * types.length)];
       return {
         id: `SUB-${String(state.subjects.length + 1).padStart(3, '0')}`,
-        name: `${firstName} ${lastName}`,
-        archetype: archetype.type,
-        trust: trust,
-        status: status,
-        description: archetype.description,
-        messages: []
+        name: "User_" + Math.floor(Math.random() * 999),
+        archetype: archetype,
+        trust: 50,
+        status: 'unknown'
       };
     }
 
-    // Generate initial messages for a subject
     function generateMessage(subject) {
-      const templates = messageTemplates[subject.archetype] || messageTemplates.talker;
-      const text = templates[Math.floor(Math.random() * templates.length)];
-      
+      const templates = messageTemplates[subject.archetype][state.lang];
       return {
         id: `MSG-${String(state.messages.length + 1).padStart(4, '0')}`,
         subjectId: subject.id,
-        text: text,
-        timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        text: templates[Math.floor(Math.random() * templates.length)],
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         flagged: Math.random() > 0.8
       };
     }
 
-    // Initialize the game
     function init() {
-      // Load from localStorage if available
-      const saved = localStorage.getItem('theObserver_save');
-      if (saved) {
-        const loaded = JSON.parse(saved);
-        Object.assign(state, loaded);
-      } else {
-        // Generate initial subjects
-        for (let i = 0; i < 4; i++) {
-          const subject = generateSubject();
-          state.subjects.push(subject);
-          
-          // Generate 1-3 messages per subject
-          const msgCount = Math.floor(Math.random() * 3) + 1;
-          for (let j = 0; j < msgCount; j++) {
-            const msg = generateMessage(subject);
-            state.messages.push(msg);
-          }
-        }
+      for (let i = 0; i < 4; i++) {
+        const s = generateSubject();
+        state.subjects.push(s);
+        state.messages.push(generateMessage(s));
       }
-      
       render();
     }
 
-    // Render the UI
     function render() {
+      const t = i18n[state.lang];
+      document.getElementById('label-online').textContent = t.online;
+      document.getElementById('label-day').textContent = t.day;
+      document.getElementById('terminal-title').textContent = t.terminal;
+      document.getElementById('title-analysis').textContent = t.analysis;
+      document.getElementById('title-signals').textContent = t.signals;
+      document.getElementById('title-actions').textContent = t.actions;
+      document.getElementById('btn-expose').textContent = t.btnExpose;
+      document.getElementById('btn-pressure').textContent = t.btnPressure;
+      document.getElementById('btn-doubt').textContent = t.btnDoubt;
+      document.getElementById('btn-isolate').textContent = t.btnIsolate;
+      document.getElementById('btn-observe').textContent = t.btnObserve;
+      document.getElementById('footer-version').textContent = t.footer;
+      document.getElementById('label-reputation').textContent = t.reputationLabel;
+
       renderMessages();
       renderSubjects();
       renderSignals();
       updateStats();
-      save();
     }
 
     function renderMessages() {
       const container = document.getElementById('messageStream');
-      container.innerHTML = state.messages.slice(-20).map(msg => {
-        const subject = state.subjects.find(s => s.id === msg.subjectId);
+      container.innerHTML = state.messages.map(msg => {
+        const s = state.subjects.find(sub => sub.id === msg.subjectId);
         return `
           <div class="message" onclick="selectSubject('${msg.subjectId}')">
             <div class="message-header">
-              <span class="message-id">${msg.subjectId} // ${subject ? subject.name : 'UNKNOWN'}</span>
+              <span class="message-id">${msg.subjectId} // ${s ? s.name : '???'}</span>
               <span class="message-timestamp">${msg.timestamp}</span>
             </div>
             <div class="message-body">${msg.text}</div>
-            ${msg.flagged ? '<div class="message-flag">FLAGGED</div>' : ''}
-          </div>
-        `;
+            ${msg.flagged ? `<div class="message-flag">${i18n[state.lang].flagged}</div>` : ''}
+          </div>`;
       }).join('');
-      
       container.scrollTop = container.scrollHeight;
     }
 
     function renderSubjects() {
       const container = document.getElementById('subjectBoard');
-      container.innerHTML = state.subjects.map(subject => `
-        <div class="subject" onclick="selectSubject('${subject.id}')">
-          <span class="subject-name">${subject.id}</span>
-          <span class="subject-status status-${subject.status}">${subject.status.toUpperCase()}</span>
-        </div>
-      `).join('');
+      container.innerHTML = state.subjects.map(s => `
+        <div class="subject" onclick="selectSubject('${s.id}')">
+          <span class="subject-name">${s.id}</span>
+          <span class="subject-status status-${s.status}">${i18n[state.lang]['status_' + s.status]}</span>
+        </div>`).join('');
     }
 
     function renderSignals() {
       const container = document.getElementById('signalLog');
-      container.innerHTML = state.signals.slice(-10).map((signal, i) => `
-        <div class="signal ${i === state.signals.length - 1 ? 'new' : ''}">[${signal.time}] ${signal.text}</div>
-      `).join('');
+      container.innerHTML = state.signals.slice(-10).map(sig => `<div class="signal">[${sig.time}] ${sig.text}</div>`).join('');
     }
 
     function updateStats() {
+      const t = i18n[state.lang];
       document.getElementById('dayCounter').textContent = String(state.day).padStart(3, '0');
-      document.getElementById('reputation').textContent = 
-        state.reputation > 20 ? 'RESPECTED' :
-        state.reputation > 0 ? 'KNOWN' :
-        state.reputation > -20 ? 'NEUTRAL' :
-        state.reputation > -40 ? 'SUSPICIOUS' : 'COMPROMISED';
+      let repKey = 'rep_neutral';
+      if (state.reputation > 20) repKey = 'rep_respected';
+      else if (state.reputation < -20) repKey = 'rep_suspicious';
+      document.getElementById('reputation').textContent = t[repKey];
     }
 
-    function selectSubject(subjectId) {
-      state.selectedSubject = subjectId;
-      const subject = state.subjects.find(s => s.id === subjectId);
-      addSignal(`Selected subject: ${subjectId} (${subject.status})`);
+    function selectSubject(id) {
+      state.selectedSubject = id;
+      addSignal(`${i18n[state.lang].sig_selected}: ${id}`);
     }
 
     function addSignal(text) {
-      state.signals.push({
-        text: text,
-        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-      });
-      if (state.signals.length > 50) state.signals.shift();
+      state.signals.push({ text, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) });
+      renderSignals();
     }
 
-    function save() {
-      localStorage.setItem('theObserver_save', JSON.stringify(state));
-    }
-
-    // Actions
     function exposeSubject() {
-      if (!state.selectedSubject) {
-        addSignal('No subject selected');
-        return;
-      }
-      const subject = state.subjects.find(s => s.id === state.selectedSubject);
-      subject.status = 'suspect';
-      subject.trust -= 30;
-      addSignal(`EXPOSED: ${subject.id} - ${subject.name}`);
-      addSignal(`Archetype: ${subject.archetype} - "${subject.description}"`);
-      save();
+      if (!state.selectedSubject) return addSignal(i18n[state.lang].sig_no_subject);
+      const s = state.subjects.find(sub => sub.id === state.selectedSubject);
+      s.status = 'suspect';
+      addSignal(`${i18n[state.lang].sig_exposed}: ${s.id}`);
       render();
     }
 
     function pressureSubject() {
-      if (!state.selectedSubject) {
-        addSignal('No subject selected');
-        return;
-      }
-      const subject = state.subjects.find(s => s.id === state.selectedSubject);
-      subject.trust -= 15;
-      addSignal(`PRESSURE: ${subject.id} - trust reduced`);
-      
-      // Add a defensive message
-      const msg = generateMessage(subject);
-      msg.text = "I... I don't know what you're talking about.";
-      state.messages.push(msg);
-      
-      save();
+      if (!state.selectedSubject) return addSignal(i18n[state.lang].sig_no_subject);
+      const s = state.subjects.find(sub => sub.id === state.selectedSubject);
+      state.messages.push({ ...generateMessage(s), text: i18n[state.lang].msg_pressure_def });
+      addSignal(i18n[state.lang].sig_pressure);
       render();
     }
 
     function plantDoubt() {
-      if (!state.selectedSubject) {
-        addSignal('No subject selected');
-        return;
-      }
-      const subject = state.subjects.find(s => s.id === state.selectedSubject);
-      subject.trust -= 10;
-      addSignal(`DOUBT planted in ${subject.id}`);
-      
-      // Generate a message that shows uncertainty
-      const msg = generateMessage(subject);
-      msg.text = "Wait... maybe I'm thinking about this wrong.";
-      state.messages.push(msg);
-      
-      save();
+      if (!state.selectedSubject) return addSignal(i18n[state.lang].sig_no_subject);
+      const s = state.subjects.find(sub => sub.id === state.selectedSubject);
+      state.messages.push({ ...generateMessage(s), text: i18n[state.lang].msg_doubt_def });
+      addSignal(i18n[state.lang].sig_doubt);
       render();
     }
 
     function isolateSubject() {
-      if (!state.selectedSubject) {
-        addSignal('No subject selected');
-        return;
-      }
-      const subject = state.subjects.find(s => s.id === state.selectedSubject);
-      addSignal(`ISOLATING: ${subject.id} - reducing contact`);
-      subject.trust -= 20;
-      addSignal(`Target status: ${subject.status} -> more suspicious`);
-      subject.status = 'suspect';
-      
-      save();
+      if (!state.selectedSubject) return addSignal(i18n[state.lang].sig_no_subject);
+      addSignal(i18n[state.lang].sig_isolating);
       render();
     }
 
     function observeMore() {
-      addSignal('Entering OBSERVE mode - just watching...');
-      
-      // Add a new subject
-      const newSubject = generateSubject();
-      state.subjects.push(newSubject);
-      
-      // Generate a message for new subject
-      const msg = generateMessage(newSubject);
-      state.messages.push(msg);
-      
-      addSignal(`New subject detected: ${newSubject.id}`);
-      
-      save();
+      const s = generateSubject();
+      state.subjects.push(s);
+      state.messages.push(generateMessage(s));
+      addSignal(i18n[state.lang].sig_new_sub);
       render();
     }
 
-    // Start the game
     init();
   </script>
 </body>

@@ -36,10 +36,11 @@ async function autoChat() {
   const typingId = addTypingIndicator(subject);
   const msg = await generateMessage(subject);
   removeTypingIndicator(typingId);
-  state.messages.push(msg);
   pendingChatMessage = false;
 
-  renderMessages();
+  renderMessageAnimated(msg);
+  state.messages.push(msg);
+  saveDailyCase();
   showNewMessageBadge();
 
   // 30% chance another subject reacts organically
@@ -152,13 +153,15 @@ async function triggerOrganicReaction(triggerSubject) {
     const texts = await callAI(enPrompt, ptPrompt);
     removeTypingIndicator(typingId);
 
-    state.messages.push({
+    const reactMsg = {
       id: `MSG-${String(state.messages.length + 1).padStart(4, '0')}`,
       subjectId: reactor.id, texts,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       flagged: false
-    });
-    renderMessages();
+    };
+    renderMessageAnimated(reactMsg);
+    state.messages.push(reactMsg);
+    saveDailyCase();
     showNewMessageBadge();
   }
 }
@@ -342,6 +345,7 @@ async function startNewCase() {
     renderMessages();
   }
   render();
+  saveDailyCase();
 
   // Start autonomous chat loop
   startChatLoop();
@@ -352,7 +356,50 @@ async function startNewCase() {
 function saveRanking() {}
 function loadRanking() {}
 
+// --- DAILY CASE PERSISTENCE ---
+
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function saveDailyCase() {
+  try {
+    const snapshot = {
+      date: todayKey(),
+      subjects: state.subjects,
+      currentCase: state.currentCase,
+      messages: state.messages,
+      day: state.day,
+      reputation: state.reputation,
+      accusationCount: state.accusationCount,
+      caseResolved: state.caseResolved
+    };
+    localStorage.setItem('observer_daily', JSON.stringify(snapshot));
+  } catch(e) {}
+}
+
+function loadDailyCase() {
+  try {
+    const raw = localStorage.getItem('observer_daily');
+    if (!raw) return false;
+    const snap = JSON.parse(raw);
+    if (snap.date !== todayKey()) return false;
+    // Restore state
+    state.subjects       = snap.subjects || [];
+    state.currentCase    = snap.currentCase || null;
+    state.messages       = snap.messages || [];
+    state.day            = snap.day || 1;
+    state.reputation     = snap.reputation || 0;
+    state.accusationCount= snap.accusationCount || 0;
+    state.caseResolved   = snap.caseResolved || false;
+    state.caseActive     = true;
+    return true;
+  } catch(e) { return false; }
+}
+
 // --- COOLDOWN (1 case per 24h real time) ---
+// Note: cooldown is kept for compatibility but daily case lock is the primary mechanism
 const COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
 function getCooldownRemaining() {

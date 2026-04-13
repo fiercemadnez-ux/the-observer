@@ -17,28 +17,79 @@ function onChatScroll() {
   }
 }
 
+// --- TYPING EFFECT ---
+// Renders a single new message with a letter-by-letter typing animation.
+// Used for live messages (autoChat + reactions). Static restore uses renderMessages().
+function renderMessageAnimated(msg) {
+  const container = document.getElementById('messageStream');
+  const shouldScroll = isScrolledToBottom(container);
+
+  const s = state.subjects.find(sub => sub.id === msg.subjectId);
+  const isObserver = msg.isObserver;
+  const color = isObserver ? 'var(--info)' : (s ? s.color : 'var(--text-dim)');
+  const isSelected = s && s.id === state.selectedSubject;
+
+  const div = document.createElement('div');
+  div.className = `message${isObserver ? ' message-observer' : ''}${isSelected ? ' message-selected' : ''}`;
+  div.style.borderLeftColor = color;
+  if (!isObserver) div.onclick = () => selectSubject(msg.subjectId);
+
+  const headerLabel = isObserver ? '// OBSERVER' : `${msg.subjectId} // ${s ? s.name : '???'}`;
+  div.innerHTML = `
+    <div class="message-header">
+      <span class="message-id" style="color: ${color}">${headerLabel}</span>
+      <span class="message-timestamp">${msg.timestamp}</span>
+    </div>
+    <div class="message-body" id="typingBody_${msg.id}"></div>
+    ${msg.flagged ? `<div class="message-flag">${i18n[state.lang].flagged}</div>` : ''}
+  `;
+  container.appendChild(div);
+  if (shouldScroll) container.scrollTop = container.scrollHeight;
+
+  // Animate typing
+  const rawText = msg.texts ? (msg.texts[state.lang] || msg.texts.en) : (msg.text || '');
+  const bodyEl = div.querySelector(`#typingBody_${msg.id}`);
+  let i = 0;
+  const speed = Math.max(18, Math.min(40, Math.floor(1800 / rawText.length)));
+  const ticker = setInterval(() => {
+    i++;
+    // Build highlighted partial text
+    const partial = rawText.slice(0, i);
+    bodyEl.innerHTML = applyKeywordHighlights(partial);
+    if (shouldScroll || isScrolledToBottom(container)) container.scrollTop = container.scrollHeight;
+    if (i >= rawText.length) {
+      clearInterval(ticker);
+      // Update msg.id element via full renderMessages to sync clues/flags after complete
+    }
+  }, speed);
+}
+
+function applyKeywordHighlights(text) {
+  const keywords = state.currentCase && state.currentCase.keywords
+    ? (state.currentCase.keywords[state.lang] || state.currentCase.keywords.en || [])
+    : [];
+  let out = text;
+  keywords.forEach(kw => {
+    if (!kw) return;
+    const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escaped})`, 'gi');
+    out = out.replace(regex, '<mark class="kw-highlight">$1</mark>');
+  });
+  return out;
+}
+
 function renderMessages() {
   const container = document.getElementById('messageStream');
   const shouldScroll = isScrolledToBottom(container);
 
   container.innerHTML = state.messages.map(msg => {
     const s = state.subjects.find(sub => sub.id === msg.subjectId);
-    let text = msg.texts ? (msg.texts[state.lang] || msg.texts.en) : (msg.text || '');
+    const rawText = msg.texts ? (msg.texts[state.lang] || msg.texts.en) : (msg.text || '');
+    const text = applyKeywordHighlights(rawText);
     const isObserver = msg.isObserver;
     const color = isObserver ? 'var(--info)' : (s ? s.color : 'var(--text-dim)');
     const isSelected = s && s.id === state.selectedSubject;
     const isClue = msg.isClue;
-
-    // Highlight keywords (use current language keywords)
-    const keywords = state.currentCase && state.currentCase.keywords
-      ? (state.currentCase.keywords[state.lang] || state.currentCase.keywords.en || [])
-      : [];
-    keywords.forEach(kw => {
-      if (!kw) return;
-      const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regex = new RegExp(`(${escaped})`, 'gi');
-      text = text.replace(regex, '<mark class="kw-highlight">$1</mark>');
-    });
 
     return `
       <div class="message ${isObserver ? 'message-observer' : ''} ${isSelected ? 'message-selected' : ''} ${isClue ? 'message-clue' : ''}" 

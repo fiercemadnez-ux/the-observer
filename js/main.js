@@ -13,6 +13,21 @@ async function init() {
 
   loadRanking();
 
+  // Try to restore today's case before generating a new one
+  if (loadDailyCase()) {
+    // Restored — show the UI without generating anything new
+    document.getElementById('caseInfo').style.display = 'block';
+    const termTitle = document.getElementById('terminal-title');
+    if (termTitle && state.currentCase && state.currentCase.setting) {
+      termTitle.textContent = `\u25b8 ${state.currentCase.setting[state.lang].toUpperCase()} // CHANNEL_${String(state.day).padStart(2,'0')}`;
+    }
+    render();
+    if (!state.caseResolved) {
+      startChatLoop();
+    }
+    return;
+  }
+
   const remaining = getCooldownRemaining();
   if (remaining > 0) {
     showCooldownScreen(remaining);

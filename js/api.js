@@ -213,23 +213,23 @@ async function generateMessageFromAI(subject) {
     ? (isBR ? ` Aluda sutilmente a: "${clueHint}".` : ` Subtly allude to: "${clueHint}".`)
     : '';
 
-  const systemPrompt = isBR
-    ? `Você é ${subject.name}, alguém em ${settingLabel}. Está conversando no canal do grupo.\n` +
-      `Você NÃO sabe que está sendo monitorado. Comporte-se naturalmente para o ambiente.\n` +
-      `Sua fala, referências e preocupações devem combinar com o contexto de ${settingLabel}.\n` +
-      (crimeLabel ? `Algo aconteceu recentemente que todos aqui sabem: "${crimeLabel}". Pode ser mencionado ou não.\n` : '') +
-      `Sua personalidade: ${archTraits}\n` +
-      guiltyExtraLocal + clueExtraLocal + `\n` +
-      `Histórico recente do chat:\n${recentLog || '(canal recém aberto)'}\n\n` +
-      `Escreva sua próxima mensagem como essa pessoa, em português brasileiro. Responda APENAS com o texto da mensagem, sem JSON, sem explicação.`
-    : `You are ${subject.name}, someone in ${settingLabel}. You are chatting in the group's shared channel.\n` +
-      `You have NO idea anyone is monitoring this conversation. Behave naturally for your environment.\n` +
-      `Your speech, references, and concerns should fit the context of ${settingLabel}.\n` +
-      (crimeLabel ? `Something happened recently that everyone here knows about: "${crimeLabel}". It may come up, or not.\n` : '') +
-      `Your personality: ${archTraits}\n` +
-      guiltyExtra + clueExtra + `\n` +
-      `Recent chat history:\n${recentLog || '(channel just opened)'}\n\n` +
-      `Write your next message as this person. Respond ONLY with the message text, no JSON, no explanation.`;
+  const systemContext = isBR
+    ? `Você é ${subject.name}. Você está num canal de grupo em ${settingLabel}. Sua personalidade: ${archTraits}` +
+      (guiltyExtraLocal ? ` ${guiltyExtraLocal}` : '') +
+      (crimeLabel ? ` Contexto: ${crimeLabel}.` : '')
+    : `You are ${subject.name}. You are in a group chat in ${settingLabel}. Personality: ${archTraits}` +
+      (guiltyExtra ? ` ${guiltyExtra}` : '') +
+      (crimeLabel ? ` Context: ${crimeLabel}.` : '');
+
+  const userInstruction = isBR
+    ? `Histórico do chat:\n${recentLog || '(ninguém falou ainda)'}\n\n` +
+      `Escreva UMA mensagem NOVA como ${subject.name}, em português brasileiro.` +
+      (clueExtraLocal ? ` ${clueExtraLocal}` : '') +
+      ` NÃO repita nenhuma mensagem acima. Responda SOMENTE com o texto da mensagem.`
+    : `Chat history:\n${recentLog || '(nobody has spoken yet)'}\n\n` +
+      `Write ONE NEW message as ${subject.name}, in English.` +
+      (clueExtra ? ` ${clueExtra}` : '') +
+      ` DO NOT repeat or quote any message above. Respond ONLY with the message text.`;
 
   try {
     const response = await fetch(NVIDIA_API_URL, {
@@ -237,8 +237,11 @@ async function generateMessageFromAI(subject) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: NVIDIA_MODEL,
-        messages: [{ role: 'user', content: systemPrompt }],
-        max_tokens: 150,
+        messages: [
+          { role: 'system', content: systemContext },
+          { role: 'user',   content: userInstruction }
+        ],
+        max_tokens: 120,
         temperature: 0.95,
         stream: false
       })
@@ -247,8 +250,7 @@ async function generateMessageFromAI(subject) {
     const data = await response.json();
     const raw = data.choices[0].message.content.trim();
     if (!raw) throw new Error('Empty response');
-    // Store as bilingual-compatible object with current lang filled in
-    return { en: isBR ? raw : raw, pt: isBR ? raw : raw, [lang]: raw };
+    return { en: raw, pt: raw, [lang]: raw };
   } catch (err) {
     console.error('[API ERROR] generateMessageFromAI:', err.message);
     const templates = messageTemplates[archetype][lang] || messageTemplates[archetype].en;

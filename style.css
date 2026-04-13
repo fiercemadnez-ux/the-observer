@@ -226,6 +226,15 @@ footer {
   letter-spacing: 0.05em;
 }
 .case-info span:first-child { color: var(--accent); margin-right: 5px; }
+.keyword-bar { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 5px; }
+.kw-tag {
+  font-size: 0.65rem;
+  padding: 2px 7px;
+  border: 1px solid var(--warning);
+  color: var(--warning);
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
 
 /* Subject selected highlight */
 .subject-selected {
@@ -258,6 +267,15 @@ footer {
 .rank-win .rank-top { color: var(--accent); }
 .rank-loss .rank-top { color: var(--danger); }
 .rank-crime { color: var(--text-dim); font-size: 0.68rem; }
+
+/* Keyword highlight */
+mark.kw-highlight {
+  background: transparent;
+  color: var(--warning);
+  font-weight: 600;
+  border-bottom: 1px solid var(--warning);
+  padding: 0 1px;
+}
 
 /* Selected message highlight */
 .message-selected {

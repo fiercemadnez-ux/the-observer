@@ -18,9 +18,10 @@ async function generateCase(subjects) {
     `{\n` +
     `  "crime_en": "1 sentence describing what happened (workplace incident, leak, sabotage, disappearance, theft, etc)",\n` +
     `  "crime_pt": "1 frase descrevendo o que aconteceu",\n` +
-    `  "clues": ["behavioral clue 1 (NOT naming the culprit)", "behavioral clue 2", "behavioral clue 3"]\n` +
+    `  "clues": ["behavioral clue 1 (NOT naming the culprit)", "behavioral clue 2", "behavioral clue 3"],\n` +
+    `  "keywords": ["3 to 6 short keywords in English related to the incident (e.g. access log, server room, overtime, deleted files)"]\n` +
     `}\n` +
-    `Clues must describe subtle behaviors to watch for — not facts, not confessions. Indirect only.`;
+    `Clues must describe subtle behaviors. Keywords are words that might appear naturally in conversation and hint at guilt.`;
 
   try {
     const response = await fetch(NVIDIA_API_URL, {
@@ -43,6 +44,7 @@ async function generateCase(subjects) {
     return {
       crime: { en: parsed.crime_en || 'Unidentified incident.', pt: parsed.crime_pt || 'Incidente não identificado.' },
       clues: parsed.clues || [],
+      keywords: (parsed.keywords || []).map(k => k.toLowerCase()),
       guiltyId: guiltySubject.id,
       guiltyName: guiltySubject.name
     };
@@ -51,6 +53,7 @@ async function generateCase(subjects) {
     return {
       crime: { en: 'Unidentified incident on the network.', pt: 'Incidente não identificado na rede.' },
       clues: [],
+      keywords: [],
       guiltyId: guiltySubject.id,
       guiltyName: guiltySubject.name
     };
@@ -107,15 +110,24 @@ async function generateMessageFromAI(subject) {
   }
   const clueExtra = clueHint ? ` Subtly allude to: "${clueHint}".` : '';
 
+  // Build case context - characters know something happened at work
+  let caseContext = '';
+  if (state.currentCase) {
+    caseContext =
+      `\nContext: Something happened recently at the company — ${state.currentCase.crime.en}` +
+      ` Everyone in this channel is aware of it. It may or may not come up naturally in conversation.\n`;
+  }
+
   const systemPrompt =
     `You are ${subject.name}, an employee chatting in your company's internal messaging channel.\n` +
-    `You have no idea anyone is monitoring this conversation. Just chat naturally.\n` +
+    `You have no idea anyone is monitoring this conversation.\n` +
+    caseContext +
     `Your personality (EN): ${archetypePrompts.en[archetype]}\n` +
     `Your personality (PT): ${archetypePrompts.pt[archetype]}\n` +
     guiltyExtra + clueExtra + `\n` +
     `Recent chat history:\n${recentLog || '(channel just opened)'}\n\n` +
-    `Write your next message. React to what others said if relevant, or just say something in character.\n` +
-    `Do NOT mention investigations, crimes, or anything that breaks the illusion. Just chat.\n` +
+    `Write your next message. You can comment on what happened, react to others, or just chat about anything.\n` +
+    `Mix topics naturally — don't ONLY talk about the incident, but don't avoid it either.\n` +
     `Reply ONLY with JSON: {"en": "<message in English>", "pt": "<message in Portuguese>"}\n` +
     `Short, natural, no stage directions, no markdown.`;
 

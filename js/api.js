@@ -7,21 +7,40 @@ async function generateCase(subjects) {
   const names = subjects.map(s => `${s.id} (${s.name}, archetype: ${s.archetype})`).join(', ');
   const guiltySubject = subjects[Math.floor(Math.random() * subjects.length)];
 
+  // Pick a random setting for this case
+  const settings = [
+    'a tech startup office',
+    'a government research facility',
+    'a nightclub or underground venue',
+    'a hospital or clinic',
+    'a university department',
+    'a criminal organization\'s safe house',
+    'a news media outlet',
+    'a cargo ship crew',
+    'a remote research station',
+    'a luxury hotel staff',
+    'a hacker collective\'s chat server',
+    'a small-town police department',
+  ];
+  const setting = settings[Math.floor(Math.random() * settings.length)];
+
   const systemPrompt =
     `You are generating a background scenario for a hidden surveillance observation game.\n` +
-    `These people work together and are chatting in an internal channel. They do NOT know they are being monitored.\n` +
+    `Setting: ${setting}. These people share a group chat and do NOT know they are being monitored.\n` +
     `Characters: ${names}.\n` +
     `The guilty one is ALWAYS: ${guiltySubject.id} (${guiltySubject.name}).\n` +
-    `Generate a dark workplace incident that already happened. The characters will chat normally, unaware.\n` +
-    `The player observes their behavior to figure out who did it.\n` +
+    `Generate a dark incident relevant to the setting that already happened. Characters chat normally, unaware.\n` +
+    `The player observes their behavior to deduce who is guilty.\n` +
     `Respond ONLY with JSON:\n` +
     `{\n` +
-    `  "crime_en": "1 sentence describing what happened (workplace incident, leak, sabotage, disappearance, theft, etc)",\n` +
+    `  "crime_en": "1 sentence describing what happened (relevant to the setting)",\n` +
     `  "crime_pt": "1 frase descrevendo o que aconteceu",\n` +
+    `  "setting_en": "name of the setting in English",\n` +
+    `  "setting_pt": "nome do cenário em português",\n` +
     `  "clues": ["behavioral clue 1 (NOT naming the culprit)", "behavioral clue 2", "behavioral clue 3"],\n` +
-    `  "keywords": ["3 to 6 short keywords in English related to the incident (e.g. access log, server room, overtime, deleted files)"]\n` +
+    `  "keywords": ["3 to 6 short keywords related to the incident that might appear in chat"]\n` +
     `}\n` +
-    `Clues must describe subtle behaviors. Keywords are words that might appear naturally in conversation and hint at guilt.`;
+    `Clues describe subtle behaviors. Keywords are words that hint at guilt when spoken naturally.`;
 
   try {
     const response = await fetch(NVIDIA_API_URL, {
@@ -43,6 +62,7 @@ async function generateCase(subjects) {
     const parsed = JSON.parse(jsonMatch[0]);
     return {
       crime: { en: parsed.crime_en || 'Unidentified incident.', pt: parsed.crime_pt || 'Incidente não identificado.' },
+      setting: { en: parsed.setting_en || 'unknown location', pt: parsed.setting_pt || 'local desconhecido' },
       clues: parsed.clues || [],
       keywords: (parsed.keywords || []).map(k => k.toLowerCase()),
       guiltyId: guiltySubject.id,
@@ -51,7 +71,8 @@ async function generateCase(subjects) {
   } catch (err) {
     console.warn('Case gen fallback:', err.message);
     return {
-      crime: { en: 'Unidentified incident on the network.', pt: 'Incidente não identificado na rede.' },
+      crime: { en: 'Unidentified incident.', pt: 'Incidente não identificado.' },
+      setting: { en: 'unknown location', pt: 'local desconhecido' },
       clues: [],
       keywords: [],
       guiltyId: guiltySubject.id,
@@ -110,16 +131,18 @@ async function generateMessageFromAI(subject) {
   }
   const clueExtra = clueHint ? ` Subtly allude to: "${clueHint}".` : '';
 
-  // Build case context - characters know something happened at work
+  // Build case context
   let caseContext = '';
+  let settingDesc = 'a group chat';
   if (state.currentCase) {
+    settingDesc = state.currentCase.setting ? state.currentCase.setting.en : 'a group chat';
     caseContext =
-      `\nContext: Something happened recently at the company — ${state.currentCase.crime.en}` +
-      ` Everyone in this channel is aware of it. It may or may not come up naturally in conversation.\n`;
+      `\nRecent event everyone in this group is aware of: ${state.currentCase.crime.en}` +
+      ` It may or may not come up naturally.\n`;
   }
 
   const systemPrompt =
-    `You are ${subject.name}, an employee chatting in your company's internal messaging channel.\n` +
+    `You are ${subject.name}, a person in ${settingDesc}. You are chatting in a shared group channel.\n` +
     `You have no idea anyone is monitoring this conversation.\n` +
     caseContext +
     `Your personality (EN): ${archetypePrompts.en[archetype]}\n` +

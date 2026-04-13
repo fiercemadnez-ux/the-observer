@@ -316,6 +316,11 @@ async function startNewCase() {
   // Show case info
   document.getElementById('caseInfo').style.display = 'block';
   document.getElementById('crimeDescription').textContent = caseData.crime[state.lang];
+  // Update terminal title with setting
+  const termTitle = document.getElementById('terminal-title');
+  if (termTitle && caseData.setting) {
+    termTitle.textContent = `▸ ${caseData.setting[state.lang].toUpperCase()} // CHANNEL_${String(state.day).padStart(2,'0')}`;
+  }
 
   addSignal(i18n[state.lang].sig_new_case);
   render();

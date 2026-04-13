@@ -1,14 +1,23 @@
 async function init() {
-  // Restore saved language
-  const savedLang = localStorage.getItem('observer_lang');
-  if (savedLang && i18n[savedLang]) {
-    state.lang = savedLang;
-    const select = document.getElementById('langSelect');
-    if (select) select.value = savedLang;
-  }
+  // Restore saved language BEFORE anything renders
+  try {
+    const savedLang = localStorage.getItem('observer_lang');
+    if (savedLang && i18n[savedLang]) {
+      state.lang = savedLang;
+    }
+  } catch(e) {}
+
+  // Set select to match state (after DOM ready)
+  const select = document.getElementById('langSelect');
+  if (select) select.value = state.lang;
 
   loadRanking();
   await startNewCase();
 }
 
-init();
+// Wait for DOM before init
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}

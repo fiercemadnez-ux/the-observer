@@ -158,7 +158,7 @@ function addTypingIndicator(subjectId) {
     </div>
     <div class="message-body" style="color: var(--text-dim)">▌</div>`;
   container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
+  if (isScrolledToBottom(container)) container.scrollTop = container.scrollHeight;
   return id;
 }
 

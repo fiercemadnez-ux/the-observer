@@ -1,5 +1,11 @@
+function isScrolledToBottom(el) {
+  return el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+}
+
 function renderMessages() {
   const container = document.getElementById('messageStream');
+  const shouldScroll = isScrolledToBottom(container);
+
   container.innerHTML = state.messages.map(msg => {
     const s = state.subjects.find(sub => sub.id === msg.subjectId);
     return `
@@ -12,7 +18,8 @@ function renderMessages() {
         ${msg.flagged ? `<div class="message-flag">${i18n[state.lang].flagged}</div>` : ''}
       </div>`;
   }).join('');
-  container.scrollTop = container.scrollHeight;
+
+  if (shouldScroll) container.scrollTop = container.scrollHeight;
 }
 
 function renderSubjects() {

@@ -367,5 +367,6 @@ function removeTypingIndicator(id) {
 
 function changeLanguage(lang) {
   state.lang = lang;
+  try { localStorage.setItem('observer_lang', lang); } catch(e) {}
   render();
 }

@@ -91,34 +91,36 @@ function renderRanking() {
 
 function updateStats() {
   const t = i18n[state.lang];
-  document.getElementById('dayCounter').textContent = String(state.day).padStart(3, '0');
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setText('dayCounter', String(state.day).padStart(3, '0'));
   let repKey = 'rep_neutral';
   if (state.reputation > 20) repKey = 'rep_respected';
   else if (state.reputation < -20) repKey = 'rep_suspicious';
-  document.getElementById('reputation').textContent = t[repKey];
+  setText('reputation', t[repKey]);
 }
 
 function render() {
   const t = i18n[state.lang];
-  document.getElementById('label-online').textContent = t.online;
-  document.getElementById('label-day').textContent = t.day;
-  document.getElementById('terminal-title').textContent = t.terminal;
-  document.getElementById('title-analysis').textContent = t.analysis;
-  document.getElementById('title-signals').textContent = t.signals;
-  document.getElementById('title-actions').textContent = t.actions;
-  document.getElementById('title-ranking').textContent = t.ranking_title;
-  document.getElementById('btn-expose').textContent = t.btnExpose;
-  document.getElementById('btn-focus').textContent = t.btnFocus;
-  document.getElementById('btn-clear').textContent = t.btnClear;
-  document.getElementById('btn-accuse').textContent = t.btnAccuse;
-  document.getElementById('footer-version').textContent = t.footer;
-  document.getElementById('label-reputation').textContent = t.reputationLabel;
-  document.getElementById('label-crime').textContent = t.crime_label;
-  document.getElementById('action-hint').textContent = t.action_hint;
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setText('btn-expose', t.btnExpose);
+  setText('btn-focus', t.btnFocus);
+  setText('btn-clear', t.btnClear);
+  setText('btn-accuse', t.btnAccuse);
+  setText('footer-version', t.footer);
+  setText('label-reputation', t.reputationLabel);
+  setText('label-crime', t.crime_label);
+  setText('action-hint', t.action_hint);
+  setText('title-ranking', t.ranking_title);
+  setText('title-analysis', t.analysis);
+  setText('title-signals', t.signals);
+  setText('title-actions', t.actions);
+  setText('terminal-title', t.terminal);
+  setText('label-online', t.online);
+  setText('label-day', t.day);
 
   // Update crime description in current language
   if (state.currentCase) {
-    document.getElementById('crimeDescription').textContent = state.currentCase.crime[state.lang];
+    setText('crimeDescription', state.currentCase.crime[state.lang]);
   }
 
   renderMessages();

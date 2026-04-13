@@ -284,17 +284,9 @@ async function startNewCase() {
 }
 
 // --- RANKING PERSISTENCE ---
-
-function saveRanking() {
-  try { localStorage.setItem('observer_ranking', JSON.stringify(state.ranking)); } catch(e) {}
-}
-
-function loadRanking() {
-  try {
-    const saved = localStorage.getItem('observer_ranking');
-    if (saved) state.ranking = JSON.parse(saved);
-  } catch(e) {}
-}
+// TODO: enable persistence when out of testing
+function saveRanking() {}
+function loadRanking() {}
 
 // --- HELPERS ---
 

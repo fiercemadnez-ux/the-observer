@@ -91,6 +91,50 @@ function selectSubject(id) {
   addSignal(`${i18n[state.lang].sig_selected}: ${id} (${s ? s.name : '?'})`);
 }
 
+// --- REACTIONS ---
+
+async function triggerReactions(action, targetSubject, count = 1) {
+  // Pick random OTHER subjects to react
+  const reactors = state.subjects
+    .filter(s => s.id !== targetSubject.id && s.status !== 'ally')
+    .sort(() => Math.random() - 0.5)
+    .slice(0, count);
+
+  for (const reactor of reactors) {
+    await new Promise(r => setTimeout(r, 1500 + Math.random() * 2000));
+    if (state.caseResolved) break;
+
+    const isGuilty = state.currentCase && reactor.id === state.currentCase.guiltyId;
+    const targetIsGuilty = state.currentCase && targetSubject.id === state.currentCase.guiltyId;
+
+    const enPrompt =
+      `You are ${reactor.name} in a cyberpunk group chat. Archetype: ${archetypePrompts.en[reactor.archetype]}.` +
+      (isGuilty ? ' You committed a crime and are hiding it.' : '') +
+      ` The observer just ${action} ${targetSubject.name}.` +
+      (targetIsGuilty ? ' (You may sense this is getting close to something real.)' : '') +
+      ` React naturally in 1 sentence. Stay in character.`;
+    const ptPrompt =
+      `Você é ${reactor.name} em um chat cyberpunk. Arquétipo: ${archetypePrompts.pt[reactor.archetype]}.` +
+      (isGuilty ? ' Você cometeu um crime e está escondendo.' : '') +
+      ` O observador acabou de ${action.replace('exposed', 'expor').replace('pressured', 'pressionar').replace('planted doubt about', 'plantar dúvida sobre').replace('isolated', 'isolar')} ${targetSubject.name}.` +
+      (targetIsGuilty ? ' (Você pode sentir que isso está chegando perto de algo real.)' : '') +
+      ` Reaja naturalmente em 1 frase. Fique no personagem.`;
+
+    const typingId = addTypingIndicator(reactor);
+    const texts = await callAI(enPrompt, ptPrompt);
+    removeTypingIndicator(typingId);
+
+    state.messages.push({
+      id: `MSG-${String(state.messages.length + 1).padStart(4, '0')}`,
+      subjectId: reactor.id, texts,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      flagged: false
+    });
+    renderMessages();
+    showNewMessageBadge();
+  }
+}
+
 // --- ACTIONS ---
 
 function exposeSubject() {
@@ -100,6 +144,11 @@ function exposeSubject() {
   s.status = 'suspect';
   addSignal(`${i18n[state.lang].sig_exposed}: ${s.id}`);
   render();
+  // Pause auto chat and trigger reactions
+  stopChatLoop();
+  triggerReactions('exposed', s, 1).then(() => {
+    if (!state.caseResolved) startChatLoop();
+  });
 }
 
 async function pressureSubject() {
@@ -123,6 +172,10 @@ async function pressureSubject() {
   });
   addSignal(i18n[state.lang].sig_pressure);
   render();
+  stopChatLoop();
+  triggerReactions('pressured', s, 1).then(() => {
+    if (!state.caseResolved) startChatLoop();
+  });
 }
 
 async function plantDoubt() {
@@ -145,6 +198,10 @@ async function plantDoubt() {
   });
   addSignal(i18n[state.lang].sig_doubt);
   render();
+  stopChatLoop();
+  triggerReactions('planted doubt about', s, 1).then(() => {
+    if (!state.caseResolved) startChatLoop();
+  });
 }
 
 function isolateSubject() {
@@ -154,6 +211,10 @@ function isolateSubject() {
   s.status = 'unknown';
   addSignal(i18n[state.lang].sig_isolating);
   render();
+  stopChatLoop();
+  triggerReactions('isolated', s, 2).then(() => {
+    if (!state.caseResolved) startChatLoop();
+  });
 }
 
 function probeSubject() {
@@ -224,6 +285,13 @@ async function submitProbe() {
   });
   addSignal(`${i18n[lang].sig_probed}: ${s.id}`);
   render();
+  // Occasionally another subject reacts to the interrogation
+  if (Math.random() > 0.4) {
+    stopChatLoop();
+    triggerReactions(`directly questioned ${s.name} asking: "${question}"`, s, 1).then(() => {
+      if (!state.caseResolved) startChatLoop();
+    });
+  }
 }
 
 function closeProbeModal() {

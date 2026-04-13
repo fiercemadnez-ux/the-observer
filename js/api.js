@@ -1,4 +1,35 @@
 const NVIDIA_API_URL = 'https://observer-proxy.ryanjogavel.workers.dev';
+
+// --- SEEDED PRNG (mulberry32) ---
+// Used during case/subject generation so all devices get the same result for the same day.
+let _seededRand = null;
+
+function seededRand() {
+  if (!_seededRand) return Math.random(); // fallback
+  _seededRand ^= _seededRand << 13;
+  _seededRand ^= _seededRand >> 17;
+  _seededRand ^= _seededRand << 5;
+  return ((_seededRand >>> 0) / 0xFFFFFFFF);
+}
+
+function strToSeed(str) {
+  // Simple djb2 hash
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = (h * 33) ^ str.charCodeAt(i);
+  return h >>> 0;
+}
+
+async function fetchDailySeed() {
+  try {
+    const res = await fetch('https://observer-proxy.ryanjogavel.workers.dev/daily-seed');
+    const data = await res.json();
+    _seededRand = strToSeed(data.seed);
+  } catch(e) {
+    // fallback: use local date
+    const today = new Date().toISOString().slice(0, 10);
+    _seededRand = strToSeed(today);
+  }
+}
 const NVIDIA_MODEL = 'meta/llama-3.1-8b-instruct';
 
 // Robust JSON parser: tries direct parse, then regex extract, then field extraction
@@ -37,7 +68,7 @@ function parseJsonResponse(raw, allowRaw = false) {
 
 async function generateCase(subjects) {
   const names = subjects.map(s => `${s.id} (${s.name}, archetype: ${s.archetype})`).join(', ');
-  const guiltySubject = subjects[Math.floor(Math.random() * subjects.length)];
+  const guiltySubject = subjects[Math.floor(seededRand() * subjects.length)];
 
   // Pick a random setting for this case
   const settings = [
@@ -54,7 +85,7 @@ async function generateCase(subjects) {
     'a hacker collective\'s chat server',
     'a small-town police department',
   ];
-  const setting = settings[Math.floor(Math.random() * settings.length)];
+  const setting = settings[Math.floor(seededRand() * settings.length)];
 
   const systemPrompt =
     `You are generating a background scenario for a hidden surveillance observation game.\n` +

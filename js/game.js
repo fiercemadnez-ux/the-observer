@@ -71,7 +71,7 @@ const SUBJECT_COLORS = [
 
 function generateSubject() {
   const types = Object.keys(messageTemplates);
-  const archetype = types[Math.floor(Math.random() * types.length)];
+  const archetype = types[Math.floor(seededRand() * types.length)];
   const color = SUBJECT_COLORS[state.subjects.length % SUBJECT_COLORS.length];
   return {
     id: `SUB-${String(state.subjects.length + 1).padStart(3, '0')}`,
@@ -89,7 +89,7 @@ function generateName() {
                  'Felix', 'Mara', 'Dorian', 'Zoe', 'Ivan', 'Cleo', 'Hugo', 'Nora'];
   const last  = ['Voss', 'Keller', 'Marsh', 'Reyes', 'Fontaine', 'Drake', 'Novak', 'Cross',
                  'Hahn', 'Steele', 'Okafor', 'Reinhart', 'Mori', 'Crane', 'Bekker', 'Lund'];
-  return first[Math.floor(Math.random() * first.length)] + ' ' + last[Math.floor(Math.random() * last.length)];
+  return first[Math.floor(seededRand() * first.length)] + ' ' + last[Math.floor(seededRand() * last.length)];
 }
 
 async function generateMessage(subject) {

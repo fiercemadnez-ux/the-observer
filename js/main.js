@@ -32,6 +32,7 @@ async function init() {
   if (remaining > 0) {
     showCooldownScreen(remaining);
   } else {
+    await fetchDailySeed();
     await startNewCase();
   }
 }

@@ -83,9 +83,12 @@ function generateSubject() {
 }
 
 function generateName() {
-  const prefixes = ['Voss', 'Kael', 'Mira', 'Dex', 'Nyx', 'Rho', 'Izen', 'Cray', 'Lune', 'Tark'];
-  const suffixes = ['_7', '_X', '.null', '.io', '_zero', '_ghost', '.exe', '_9', '_red', '.sys'];
-  return prefixes[Math.floor(Math.random() * prefixes.length)] + suffixes[Math.floor(Math.random() * suffixes.length)];
+  const first = ['Marcus', 'Nadia', 'Eliot', 'Soren', 'Petra', 'Jules', 'Damian', 'Irina',
+                 'Theo', 'Camille', 'Riku', 'Vera', 'Otto', 'Lena', 'Samir', 'Anya',
+                 'Felix', 'Mara', 'Dorian', 'Zoe', 'Ivan', 'Cleo', 'Hugo', 'Nora'];
+  const last  = ['Voss', 'Keller', 'Marsh', 'Reyes', 'Fontaine', 'Drake', 'Novak', 'Cross',
+                 'Hahn', 'Steele', 'Okafor', 'Reinhart', 'Mori', 'Crane', 'Bekker', 'Lund'];
+  return first[Math.floor(Math.random() * first.length)] + ' ' + last[Math.floor(Math.random() * last.length)];
 }
 
 async function generateMessage(subject) {

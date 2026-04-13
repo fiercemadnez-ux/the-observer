@@ -10,12 +10,15 @@ function generateSubject() {
   };
 }
 
-function generateMessage(subject) {
-  const templates = messageTemplates[subject.archetype][state.lang];
+async function generateMessage(subject) {
+  // Get recent messages from this subject for context
+  const subjectHistory = state.messages.filter(m => m.subjectId === subject.id);
+  const text = await generateMessageFromAI(subject, subjectHistory);
+
   return {
     id: `MSG-${String(state.messages.length + 1).padStart(4, '0')}`,
     subjectId: subject.id,
-    text: templates[Math.floor(Math.random() * templates.length)],
+    text,
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     flagged: Math.random() > 0.8
   };
@@ -42,19 +45,51 @@ function exposeSubject() {
   render();
 }
 
-function pressureSubject() {
+async function pressureSubject() {
   if (!state.selectedSubject) return addSignal(i18n[state.lang].sig_no_subject);
   const s = state.subjects.find(sub => sub.id === state.selectedSubject);
-  state.messages.push({ ...generateMessage(s), text: i18n[state.lang].msg_pressure_def });
-  addSignal(i18n[state.lang].sig_pressure);
+
+  const lang = state.lang;
+  const systemPrompt = lang === 'pt'
+    ? `Você está sendo pressionado e confrontado. Reaja com desconforto, defensividade ou medo. Fique no personagem: ${s.archetype}. 1-2 frases. Em português.`
+    : `You are being pressured and confronted. React with discomfort, defensiveness or fear. Stay in character: ${s.archetype}. 1-2 sentences.`;
+
+  const typingId = addTypingIndicator(s.id);
+  const text = await callAI(systemPrompt);
+  removeTypingIndicator(typingId);
+
+  state.messages.push({
+    id: `MSG-${String(state.messages.length + 1).padStart(4, '0')}`,
+    subjectId: s.id,
+    text,
+    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    flagged: false
+  });
+  addSignal(i18n[lang].sig_pressure);
   render();
 }
 
-function plantDoubt() {
+async function plantDoubt() {
   if (!state.selectedSubject) return addSignal(i18n[state.lang].sig_no_subject);
   const s = state.subjects.find(sub => sub.id === state.selectedSubject);
-  state.messages.push({ ...generateMessage(s), text: i18n[state.lang].msg_doubt_def });
-  addSignal(i18n[state.lang].sig_doubt);
+
+  const lang = state.lang;
+  const systemPrompt = lang === 'pt'
+    ? `Alguém plantou uma dúvida na sua cabeça. Você começa a questionar sua certeza. Fique no personagem: ${s.archetype}. 1-2 frases hesitantes. Em português.`
+    : `Someone just planted doubt in your mind. You start questioning your certainty. Stay in character: ${s.archetype}. 1-2 hesitant sentences.`;
+
+  const typingId = addTypingIndicator(s.id);
+  const text = await callAI(systemPrompt);
+  removeTypingIndicator(typingId);
+
+  state.messages.push({
+    id: `MSG-${String(state.messages.length + 1).padStart(4, '0')}`,
+    subjectId: s.id,
+    text,
+    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    flagged: false
+  });
+  addSignal(i18n[lang].sig_doubt);
   render();
 }
 
@@ -64,12 +99,72 @@ function isolateSubject() {
   render();
 }
 
-function observeMore() {
+async function observeMore() {
   const s = generateSubject();
   state.subjects.push(s);
-  state.messages.push(generateMessage(s));
   addSignal(i18n[state.lang].sig_new_sub);
+  renderSubjects();
+
+  const typingId = addTypingIndicator(s.id);
+  const msg = await generateMessage(s);
+  removeTypingIndicator(typingId);
+
+  state.messages.push(msg);
   render();
+}
+
+// Helper: call AI with a one-shot system prompt
+async function callAI(systemPrompt) {
+  try {
+    const response = await fetch(NVIDIA_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: NVIDIA_MODEL,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: state.lang === 'pt' ? 'Responda.' : 'Respond.' }
+        ],
+        max_tokens: 100,
+        temperature: 0.95,
+        stream: false
+      })
+    });
+    if (!response.ok) throw new Error(`API ${response.status}`);
+    const data = await response.json();
+    return data.choices[0].message.content.trim();
+  } catch (err) {
+    console.warn('AI fallback:', err.message);
+    return state.lang === 'pt' ? '...' : '...';
+  }
+}
+
+// Typing indicator helpers
+function addTypingIndicator(subjectId) {
+  const id = `typing-${Date.now()}`;
+  const container = document.getElementById('messageStream');
+  const s = state.subjects.find(sub => sub.id === subjectId);
+  const div = document.createElement('div');
+  div.className = 'message';
+  div.id = id;
+  div.style.opacity = '0.5';
+  div.innerHTML = `
+    <div class="message-header">
+      <span class="message-id">${subjectId} // ${s ? s.name : '???'}</span>
+      <span class="message-timestamp">...</span>
+    </div>
+    <div class="message-body" style="color: var(--text-dim)">▌</div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return id;
+}
+
+function removeTypingIndicator(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
 }
 
 function changeLanguage(lang) {

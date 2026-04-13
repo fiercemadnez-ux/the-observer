@@ -57,7 +57,7 @@ function renderRanking() {
         <span>${t.ranking_day}${String(entry.day).padStart(3,'0')}</span>
         <span>${entry.win ? '✓' : '✗'} ${entry.accusationCount} ${t.ranking_acc}</span>
       </div>
-      <div class="rank-crime">${entry.caseCrime}</div>
+      <div class="rank-crime">${typeof entry.caseCrime === 'object' ? (entry.caseCrime[state.lang] || entry.caseCrime.en) : entry.caseCrime}</div>
     </div>
   `).join('');
 }

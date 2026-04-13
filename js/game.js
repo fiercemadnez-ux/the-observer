@@ -135,16 +135,18 @@ async function triggerOrganicReaction(triggerSubject) {
     const lastText = lastMsg ? (lastMsg.texts ? lastMsg.texts.en : '') : '';
     const isGuilty = state.currentCase && reactor.id === state.currentCase.guiltyId;
 
+    const settingEN = state.currentCase && state.currentCase.setting ? state.currentCase.setting.en : 'a shared space';
+    const settingPT = state.currentCase && state.currentCase.setting ? state.currentCase.setting.pt : 'um espaço compartilhado';
     const enPrompt =
-      `You are ${reactor.name}, an employee in your company's internal chat. You have no idea anyone is watching.` +
-      ` Personality: ${archetypePrompts.en[reactor.archetype]}` +
+      `You are ${reactor.name}, someone in ${settingEN}. You have no idea anyone is watching.` +
+      ` Personality: ${archetypeTraits.en[reactor.archetype]}` +
       (isGuilty ? ' You are hiding something serious and feel internal pressure.' : '') +
-      ` ${triggerSubject.name} just said: "${lastText}". React naturally in 1 sentence. Do NOT mention investigations or crimes.`;
+      ` ${triggerSubject.name} just said: "${lastText}". React naturally in 1 sentence. Fit the ${settingEN} context.`;
     const ptPrompt =
-      `Você é ${reactor.name}, funcionário no chat interno da empresa. Não sabe que está sendo observado.` +
-      ` Personalidade: ${archetypePrompts.pt[reactor.archetype]}` +
+      `Você é ${reactor.name}, alguém em ${settingPT}. Não sabe que está sendo observado.` +
+      ` Personalidade: ${archetypeTraits.pt[reactor.archetype]}` +
       (isGuilty ? ' Você está escondendo algo sério e sente pressão interna.' : '') +
-      ` ${triggerSubject.name} acabou de dizer: "${lastText}". Reaja naturalmente em 1 frase. Não mencione investigações ou crimes.`;
+      ` ${triggerSubject.name} acabou de dizer: "${lastText}". Reaja naturalmente em 1 frase. Adequado ao contexto de ${settingPT}.`;
 
     const typingId = addTypingIndicator(reactor);
     const texts = await callAI(enPrompt, ptPrompt);

@@ -87,32 +87,30 @@ async function generateCase(subjects) {
 
 // --- CHARACTER MESSAGE GENERATION ---
 
-const archetypePrompts = {
+// Archetype personalities — setting-agnostic, injected dynamically with context
+const archetypeTraits = {
   en: {
-    status_seeker:
-      "You are a person chatting in an internal company messaging channel. You have no idea you're being watched. Your personality: obsessed with status and hierarchy. You constantly remind others of your seniority, drop names, reference past achievements, and subtly put others down. Max 2 sentences. Natural chat tone. No stage directions.",
-    quiet_one:
-      "You are a person chatting in an internal company messaging channel. You have no idea you're being watched. Your personality: extremely quiet and minimal. You rarely say anything, but when you do it's blunt and slightly unsettling. 1 to 6 words max. Natural chat tone. No stage directions.",
-    talker:
-      "You are a person chatting in an internal company messaging channel. You have no idea you're being watched. Your personality: can't stop talking, jumps between topics, rambles, brings up unrelated personal stories mid-sentence. 2-3 sentences, slightly scattered. Natural chat tone. No stage directions.",
-    drama_creator:
-      "You are a person chatting in an internal company messaging channel. You have no idea you're being watched. Your personality: paranoid and sarcastic, always reading between the lines, suspicious of motives, uses irony. 1-2 sentences. Natural chat tone. No stage directions.",
-    hidden_agenda:
-      "You are a person chatting in an internal company messaging channel. You have no idea you're being watched. Your personality: vague, evasive, redirects conversation, appears friendly but never commits to anything. 1-2 short sentences. Natural chat tone. No stage directions."
+    status_seeker: "obsessed with status and hierarchy. You constantly remind others of your seniority, drop names, reference past achievements, and subtly put others down. Max 2 sentences.",
+    quiet_one:     "extremely quiet and minimal. You rarely say anything, but when you do it's blunt and slightly unsettling. 1 to 6 words max.",
+    talker:        "can't stop talking, jumps between topics, rambles, brings up unrelated personal stories mid-sentence. 2-3 sentences, slightly scattered.",
+    drama_creator: "paranoid and sarcastic, always reading between the lines, suspicious of motives, uses irony. 1-2 sentences.",
+    hidden_agenda: "vague, evasive, redirects conversation, appears friendly but never commits to anything. 1-2 short sentences."
   },
   pt: {
-    status_seeker:
-      "Você é uma pessoa num canal interno de mensagens da empresa. Não sabe que está sendo observado. Sua personalidade: obcecado com status, lembra os outros constantemente da sua senioridade, cita nomes importantes, referencia conquistas passadas e sutilmente diminui os outros. Máximo 2 frases. Tom natural de chat. Sem didascálias.",
-    quiet_one:
-      "Você é uma pessoa num canal interno de mensagens da empresa. Não sabe que está sendo observado. Sua personalidade: extremamente quieto e mínimo. Raramente fala, mas quando fala é direto e levemente perturbador. De 1 a 6 palavras no máximo. Tom natural de chat. Sem didascálias.",
-    talker:
-      "Você é uma pessoa num canal interno de mensagens da empresa. Não sabe que está sendo observado. Sua personalidade: não consegue parar de falar, pula de assunto, divaga, traz histórias pessoais no meio da conversa. 2-3 frases, meio disperso. Tom natural de chat. Sem didascálias.",
-    drama_creator:
-      "Você é uma pessoa num canal interno de mensagens da empresa. Não sabe que está sendo observado. Sua personalidade: paranoico e sarcástico, sempre lendo nas entrelinhas, desconfia de motivações, usa ironia. 1-2 frases. Tom natural de chat. Sem didascálias.",
-    hidden_agenda:
-      "Você é uma pessoa num canal interno de mensagens da empresa. Não sabe que está sendo observado. Sua personalidade: vago, evasivo, redireciona a conversa, parece amigável mas nunca se compromete com nada. 1-2 frases curtas. Tom natural de chat. Sem didascálias."
+    status_seeker: "obcecado com status e hierarquia. Lembra os outros constantemente da sua senioridade, cita nomes, referencia conquistas e sutilmente diminui os outros. Máximo 2 frases.",
+    quiet_one:     "extremamente quieto e mínimo. Raramente fala, mas quando fala é direto e levemente perturbador. De 1 a 6 palavras no máximo.",
+    talker:        "não consegue parar de falar, pula de assunto, divaga, traz histórias pessoais no meio da conversa. 2-3 frases, meio disperso.",
+    drama_creator: "paranoico e sarcástico, sempre lendo nas entrelinhas, desconfia de motivações, usa ironia. 1-2 frases.",
+    hidden_agenda: "vago, evasivo, redireciona a conversa, parece amigável mas nunca se compromete com nada. 1-2 frases curtas."
   }
 };
+
+// Keep archetypePrompts as alias for any legacy references
+const archetypePrompts = { en: {}, pt: {} };
+Object.keys(archetypeTraits.en).forEach(k => {
+  archetypePrompts.en[k] = archetypeTraits.en[k];
+  archetypePrompts.pt[k] = archetypeTraits.pt[k];
+});
 
 async function generateMessageFromAI(subject) {
   const archetype = subject.archetype;
@@ -135,28 +133,23 @@ async function generateMessageFromAI(subject) {
   }
   const clueExtra = clueHint ? ` Subtly allude to: "${clueHint}".` : '';
 
-  // Build case context
-  let caseContext = '';
-  let settingDesc = 'a group chat';
-  if (state.currentCase) {
-    settingDesc = state.currentCase.setting ? state.currentCase.setting.en : 'a group chat';
-    caseContext =
-      `\nRecent event everyone in this group is aware of: ${state.currentCase.crime.en}` +
-      ` It may or may not come up naturally.\n`;
-  }
+  // Build case context with real setting
+  const settingEN = state.currentCase && state.currentCase.setting ? state.currentCase.setting.en : 'a shared space';
+  const settingPT = state.currentCase && state.currentCase.setting ? state.currentCase.setting.pt : 'um espaço compartilhado';
+  const crimeEN   = state.currentCase ? state.currentCase.crime.en : '';
+  const crimePT   = state.currentCase ? state.currentCase.crime.pt : '';
 
   const systemPrompt =
-    `You are ${subject.name}, a person in ${settingDesc}. You are chatting in a shared group channel.\n` +
-    `You have no idea anyone is monitoring this conversation.\n` +
-    caseContext +
-    `Your personality (EN): ${archetypePrompts.en[archetype]}\n` +
-    `Your personality (PT): ${archetypePrompts.pt[archetype]}\n` +
+    `You are ${subject.name}, someone in ${settingEN}. You are chatting in the group's shared channel.\n` +
+    `You have NO idea anyone is monitoring this conversation. Behave naturally for your environment.\n` +
+    `Your speech, references, and concerns should fit the context of ${settingEN}.\n` +
+    (crimeEN ? `Something happened recently that everyone here knows about: "${crimeEN}". It may come up, or not.\n` : '') +
+    `Your personality: ${archetypeTraits.en[archetype]}\n` +
     guiltyExtra + clueExtra + `\n` +
     `Recent chat history:\n${recentLog || '(channel just opened)'}\n\n` +
-    `Write your next message. You can comment on what happened, react to others, or just chat about anything.\n` +
-    `Mix topics naturally — don't ONLY talk about the incident, but don't avoid it either.\n` +
-    `Reply ONLY with JSON: {"en": "<message in English>", "pt": "<message in Portuguese>"}\n` +
-    `Short, natural, no stage directions, no markdown.`;
+    `Write your next message as this person. Mix topics — react to others, bring up something from your world, or comment on the recent event.\n` +
+    `Reply ONLY with JSON: {"en": "<natural message in English>", "pt": "<mensagem natural em português, adequada ao contexto de ${settingPT}>"}\n` +
+    `Short, natural, in-character. No stage directions. No markdown.`;
 
   try {
     const response = await fetch(NVIDIA_API_URL, {

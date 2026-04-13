@@ -22,7 +22,10 @@ const i18n = {
     result_day_label: "DAY", result_acc_label: "ACCUSATIONS",
     next_day: "▸ NEXT DAY",
     ranking_title: "CASE HISTORY", ranking_empty: "No cases in archive.",
-    ranking_day: "D", ranking_acc: "acc"
+    ranking_day: "D", ranking_acc: "acc",
+    cooldown_title: "CHANNEL OFFLINE",
+    cooldown_msg: "Next case available in",
+    cooldown_sub: "Check back tomorrow."
   },
   pt: {
     online: "CONECTADO", day: "DIA", terminal: "▸ TRANSMISSÕES RECEBIDAS // TERMINAL_07",
@@ -47,6 +50,9 @@ const i18n = {
     result_day_label: "DIA", result_acc_label: "ACUSAÇÕES",
     next_day: "▸ PRÓXIMO DIA",
     ranking_title: "HISTÓRICO DE CASOS", ranking_empty: "Nenhum caso no arquivo.",
-    ranking_day: "D", ranking_acc: "ac"
+    ranking_day: "D", ranking_acc: "ac",
+    cooldown_title: "CANAL OFFLINE",
+    cooldown_msg: "Próximo caso disponível em",
+    cooldown_sub: "Volte amanhã."
   }
 };

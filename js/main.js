@@ -12,7 +12,13 @@ async function init() {
   if (select) select.value = state.lang;
 
   loadRanking();
-  await startNewCase();
+
+  const remaining = getCooldownRemaining();
+  if (remaining > 0) {
+    showCooldownScreen(remaining);
+  } else {
+    await startNewCase();
+  }
 }
 
 // Wait for DOM before init

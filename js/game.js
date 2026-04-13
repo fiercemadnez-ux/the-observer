@@ -218,6 +218,7 @@ function accuseSubject() {
       caseCrime: state.currentCase.crime  // { en, pt }
     });
     saveRanking();
+    saveCaseTimestamp();
     render();
     showResult(true, accused);
   } else {
@@ -279,6 +280,7 @@ function revealClues() {
 async function nextDay() {
   document.getElementById('resultOverlay').style.display = 'none';
   stopChatLoop();
+  saveCaseTimestamp();
   state.day++;
   state.subjects = [];
   state.messages = [];
@@ -347,6 +349,64 @@ async function startNewCase() {
 // TODO: enable persistence when out of testing
 function saveRanking() {}
 function loadRanking() {}
+
+// --- COOLDOWN (1 case per 24h real time) ---
+const COOLDOWN_MS = 24 * 60 * 60 * 1000;
+
+function getCooldownRemaining() {
+  try {
+    const last = localStorage.getItem('observer_last_case');
+    if (!last) return 0;
+    const elapsed = Date.now() - parseInt(last, 10);
+    return Math.max(0, COOLDOWN_MS - elapsed);
+  } catch(e) { return 0; }
+}
+
+function saveCaseTimestamp() {
+  try { localStorage.setItem('observer_last_case', Date.now()); } catch(e) {}
+}
+
+function formatCooldown(ms) {
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+let cooldownTimer = null;
+
+function showCooldownScreen(remainingMs) {
+  stopChatLoop();
+  const t = i18n[state.lang];
+  document.getElementById('messageStream').innerHTML = '';
+  document.getElementById('subjectBoard').innerHTML = '';
+  document.getElementById('caseInfo').style.display = 'none';
+  document.getElementById('terminal-title').textContent = t.cooldown_title;
+
+  const container = document.getElementById('messageStream');
+  const div = document.createElement('div');
+  div.id = 'cooldownDisplay';
+  div.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:20px;';
+  div.innerHTML = `
+    <div style="color:var(--text-dim);font-size:0.8rem;letter-spacing:0.2em">${t.cooldown_msg}</div>
+    <div id="cooldownTimer" style="color:var(--accent);font-size:2.5rem;font-family:\'JetBrains Mono\',monospace;text-shadow:0 0 20px var(--accent-dim)">${formatCooldown(remainingMs)}</div>
+    <div style="color:var(--text-dim);font-size:0.75rem">${t.cooldown_sub}</div>
+  `;
+  container.appendChild(div);
+
+  // Tick every second
+  if (cooldownTimer) clearInterval(cooldownTimer);
+  cooldownTimer = setInterval(() => {
+    const rem = getCooldownRemaining();
+    const el = document.getElementById('cooldownTimer');
+    if (el) el.textContent = formatCooldown(rem);
+    if (rem <= 0) {
+      clearInterval(cooldownTimer);
+      cooldownTimer = null;
+      startNewCase();
+    }
+  }, 1000);
+}
 
 // --- HELPERS ---
 

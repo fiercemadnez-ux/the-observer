@@ -133,13 +133,15 @@ async function triggerOrganicReaction(triggerSubject) {
     const isGuilty = state.currentCase && reactor.id === state.currentCase.guiltyId;
 
     const enPrompt =
-      `You are ${reactor.name} in a live cyberpunk group chat. Archetype: ${archetypePrompts.en[reactor.archetype]}.` +
-      (isGuilty ? ' You committed a crime and are hiding it.' : '') +
-      ` ${triggerSubject.name} just said: "${lastText}". React naturally in 1 sentence. Stay in character. Don't address anyone outside the chat.`;
+      `You are ${reactor.name}, an employee in your company's internal chat. You have no idea anyone is watching.` +
+      ` Personality: ${archetypePrompts.en[reactor.archetype]}` +
+      (isGuilty ? ' You are hiding something serious and feel internal pressure.' : '') +
+      ` ${triggerSubject.name} just said: "${lastText}". React naturally in 1 sentence. Do NOT mention investigations or crimes.`;
     const ptPrompt =
-      `Você é ${reactor.name} em um chat cyberpunk ao vivo. Arquétipo: ${archetypePrompts.pt[reactor.archetype]}.` +
-      (isGuilty ? ' Você cometeu um crime e está escondendo.' : '') +
-      ` ${triggerSubject.name} acabou de dizer: "${lastText}". Reaja naturalmente em 1 frase. Fique no personagem.`;
+      `Você é ${reactor.name}, funcionário no chat interno da empresa. Não sabe que está sendo observado.` +
+      ` Personalidade: ${archetypePrompts.pt[reactor.archetype]}` +
+      (isGuilty ? ' Você está escondendo algo sério e sente pressão interna.' : '') +
+      ` ${triggerSubject.name} acabou de dizer: "${lastText}". Reaja naturalmente em 1 frase. Não mencione investigações ou crimes.`;
 
     const typingId = addTypingIndicator(reactor);
     const texts = await callAI(enPrompt, ptPrompt);

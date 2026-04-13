@@ -8,16 +8,19 @@ async function generateCase(subjects) {
   const guiltySubject = subjects[Math.floor(Math.random() * subjects.length)];
 
   const systemPrompt =
-    `You are the narrator of a cyberpunk terminal investigation game.\n` +
+    `You are generating a background scenario for a hidden surveillance observation game.\n` +
+    `These people work together and are chatting in an internal channel. They do NOT know they are being monitored.\n` +
     `Characters: ${names}.\n` +
-    `Guilty party (mandatory): ${guiltySubject.id} (${guiltySubject.name}).\n` +
-    `Generate a dark incident. Respond ONLY with JSON:\n` +
+    `The guilty one is ALWAYS: ${guiltySubject.id} (${guiltySubject.name}).\n` +
+    `Generate a dark workplace incident that already happened. The characters will chat normally, unaware.\n` +
+    `The player observes their behavior to figure out who did it.\n` +
+    `Respond ONLY with JSON:\n` +
     `{\n` +
-    `  "crime_en": "short incident description in English (1 sentence)",\n` +
-    `  "crime_pt": "descrição curta do incidente em português (1 frase)",\n` +
-    `  "clues": ["subtle behavioral clue 1", "subtle behavioral clue 2", "subtle behavioral clue 3"]\n` +
+    `  "crime_en": "1 sentence describing what happened (workplace incident, leak, sabotage, disappearance, theft, etc)",\n` +
+    `  "crime_pt": "1 frase descrevendo o que aconteceu",\n` +
+    `  "clues": ["behavioral clue 1 (NOT naming the culprit)", "behavioral clue 2", "behavioral clue 3"]\n` +
     `}\n` +
-    `Clues must be indirect and behavioral. Do not name the culprit in clues.`;
+    `Clues must describe subtle behaviors to watch for — not facts, not confessions. Indirect only.`;
 
   try {
     const response = await fetch(NVIDIA_API_URL, {
@@ -59,27 +62,27 @@ async function generateCase(subjects) {
 const archetypePrompts = {
   en: {
     status_seeker:
-      "You are a character in a cyberpunk investigation terminal game. Your personality: obsessed with status and hierarchy. You constantly establish authority, reference your experience and track record, and subtly belittle others. You name-drop and credential-drop. Max 2 sentences. No stage directions or quotes.",
+      "You are a person chatting in an internal company messaging channel. You have no idea you're being watched. Your personality: obsessed with status and hierarchy. You constantly remind others of your seniority, drop names, reference past achievements, and subtly put others down. Max 2 sentences. Natural chat tone. No stage directions.",
     quiet_one:
-      "You are a character in a cyberpunk investigation terminal game. Your personality: extremely taciturn and minimal. You say almost nothing, but what you say is precise and slightly unnerving. Reply with 1 to 5 words only. No stage directions or quotes.",
+      "You are a person chatting in an internal company messaging channel. You have no idea you're being watched. Your personality: extremely quiet and minimal. You rarely say anything, but when you do it's blunt and slightly unsettling. 1 to 6 words max. Natural chat tone. No stage directions.",
     talker:
-      "You are a character in a cyberpunk investigation terminal game. Your personality: compulsive talker who can't stay on topic. You ramble, start sentences you don't finish, and constantly relate everything to personal anecdotes. 2-3 sentences, slightly incoherent. No stage directions or quotes.",
+      "You are a person chatting in an internal company messaging channel. You have no idea you're being watched. Your personality: can't stop talking, jumps between topics, rambles, brings up unrelated personal stories mid-sentence. 2-3 sentences, slightly scattered. Natural chat tone. No stage directions.",
     drama_creator:
-      "You are a character in a cyberpunk investigation terminal game. Your personality: paranoid and sarcastic, always finding hidden meaning, conspiracies, or injustice. You challenge statements and use irony. 1-2 sentences, dripping with sarcasm. No stage directions or quotes.",
+      "You are a person chatting in an internal company messaging channel. You have no idea you're being watched. Your personality: paranoid and sarcastic, always reading between the lines, suspicious of motives, uses irony. 1-2 sentences. Natural chat tone. No stage directions.",
     hidden_agenda:
-      "You are a character in a cyberpunk investigation terminal game. Your personality: someone concealing a hidden agenda. You deflect, redirect the conversation, stay vague. You seem cooperative but reveal nothing. 1-2 short sentences. No stage directions or quotes."
+      "You are a person chatting in an internal company messaging channel. You have no idea you're being watched. Your personality: vague, evasive, redirects conversation, appears friendly but never commits to anything. 1-2 short sentences. Natural chat tone. No stage directions."
   },
   pt: {
     status_seeker:
-      "Você é um personagem em um jogo terminal de investigação cyberpunk. Sua personalidade: obcecado com status e hierarquia. Você constantemente estabelece autoridade, cita sua experiência e histórico, e sutilmente diminui os outros. Máximo 2 frases. Responda em português. Sem didascálias ou aspas.",
+      "Você é uma pessoa num canal interno de mensagens da empresa. Não sabe que está sendo observado. Sua personalidade: obcecado com status, lembra os outros constantemente da sua senioridade, cita nomes importantes, referencia conquistas passadas e sutilmente diminui os outros. Máximo 2 frases. Tom natural de chat. Sem didascálias.",
     quiet_one:
-      "Você é um personagem em um jogo terminal de investigação cyberpunk. Sua personalidade: extremamente taciturno e mínimo. Você diz quase nada, mas o que diz é preciso e levemente perturbador. Responda com 1 a 5 palavras apenas. Em português. Sem aspas.",
+      "Você é uma pessoa num canal interno de mensagens da empresa. Não sabe que está sendo observado. Sua personalidade: extremamente quieto e mínimo. Raramente fala, mas quando fala é direto e levemente perturbador. De 1 a 6 palavras no máximo. Tom natural de chat. Sem didascálias.",
     talker:
-      "Você é um personagem em um jogo terminal de investigação cyberpunk. Sua personalidade: falador compulsivo que não consegue ficar no assunto. Você divaga, começa frases que não termina, e relaciona tudo a histórias pessoais. 2-3 frases, levemente incoerente. Em português. Sem aspas.",
+      "Você é uma pessoa num canal interno de mensagens da empresa. Não sabe que está sendo observado. Sua personalidade: não consegue parar de falar, pula de assunto, divaga, traz histórias pessoais no meio da conversa. 2-3 frases, meio disperso. Tom natural de chat. Sem didascálias.",
     drama_creator:
-      "Você é um personagem em um jogo terminal de investigação cyberpunk. Sua personalidade: paranoico e sarcástico, sempre encontrando significados ocultos, conspirações ou injustiças. Desafia afirmações e usa ironia. 1-2 frases com sarcasmo. Em português. Sem aspas.",
+      "Você é uma pessoa num canal interno de mensagens da empresa. Não sabe que está sendo observado. Sua personalidade: paranoico e sarcástico, sempre lendo nas entrelinhas, desconfia de motivações, usa ironia. 1-2 frases. Tom natural de chat. Sem didascálias.",
     hidden_agenda:
-      "Você é um personagem em um jogo terminal de investigação cyberpunk. Sua personalidade: alguém com agenda oculta. Você desvia, redireciona a conversa, fica vago. Parece cooperativo mas não revela nada. 1-2 frases curtas. Em português. Sem aspas."
+      "Você é uma pessoa num canal interno de mensagens da empresa. Não sabe que está sendo observado. Sua personalidade: vago, evasivo, redireciona a conversa, parece amigável mas nunca se compromete com nada. 1-2 frases curtas. Tom natural de chat. Sem didascálias."
   }
 };
 
@@ -95,7 +98,7 @@ async function generateMessageFromAI(subject) {
   }).join('\n');
 
   const guiltyExtra = isGuilty
-    ? ' You committed a crime and are hiding it. Add subtle tension, but never confess directly.'
+    ? ' You are hiding something serious and are under internal stress. You might be slightly defensive, avoid certain topics, or overcompensate with normalcy. Never mention what you did.'
     : '';
 
   let clueHint = '';
@@ -105,14 +108,16 @@ async function generateMessageFromAI(subject) {
   const clueExtra = clueHint ? ` Subtly allude to: "${clueHint}".` : '';
 
   const systemPrompt =
-    `You are a character named ${subject.name} in a live group chat inside a cyberpunk surveillance terminal.\n` +
+    `You are ${subject.name}, an employee chatting in your company's internal messaging channel.\n` +
+    `You have no idea anyone is monitoring this conversation. Just chat naturally.\n` +
     `Your personality (EN): ${archetypePrompts.en[archetype]}\n` +
     `Your personality (PT): ${archetypePrompts.pt[archetype]}\n` +
     guiltyExtra + clueExtra + `\n` +
-    `The recent chat history is:\n${recentLog || '(no messages yet)'}\n\n` +
-    `Write your next message in this chat. React naturally to what others said if relevant.\n` +
-    `Reply ONLY with JSON: {"en": "<your message in English>", "pt": "<your message in Portuguese>"}\n` +
-    `Keep it short, natural, in-character. No stage directions. No markdown.`;
+    `Recent chat history:\n${recentLog || '(channel just opened)'}\n\n` +
+    `Write your next message. React to what others said if relevant, or just say something in character.\n` +
+    `Do NOT mention investigations, crimes, or anything that breaks the illusion. Just chat.\n` +
+    `Reply ONLY with JSON: {"en": "<message in English>", "pt": "<message in Portuguese>"}\n` +
+    `Short, natural, no stage directions, no markdown.`;
 
   try {
     const response = await fetch(NVIDIA_API_URL, {

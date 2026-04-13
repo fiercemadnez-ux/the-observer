@@ -185,6 +185,14 @@
       border-radius: 2px;
     }
 
+    .message.conversation {
+      border-left-color: var(--info);
+    }
+
+    .message.conversation:hover {
+      border-left-color: var(--accent);
+    }
+
     /* Side Panel */
     .side-panel {
       display: flex;
@@ -758,9 +766,35 @@
       setInterval(triggerConversation, 8000);
     }
 
+    // Conversation context - what topics are being discussed
+    const conversationTopics = [
+      "the new security measures",
+      "who to trust",
+      "the meeting last night",
+      "a suspicious delivery",
+      "the missing files",
+      "the new arrivals",
+      "the boss's orders",
+      "a leak in the system",
+      "tonight's operation",
+      "the surveillance"
+    ];
+
+    let currentTopic = conversationTopics[Math.floor(Math.random() * conversationTopics.length)];
+    let lastConversationTime = 0;
+
     // Trigger a conversation between two subjects
     function triggerConversation() {
       if (state.subjects.length < 2) return;
+      
+      const now = Date.now();
+      if (now - lastConversationTime < 5000) return; // Wait at least 5 seconds
+      lastConversationTime = now;
+      
+      // Occasionally change topic
+      if (Math.random() < 0.2) {
+        currentTopic = conversationTopics[Math.floor(Math.random() * conversationTopics.length)];
+      }
       
       // Pick two random subjects
       const idx1 = Math.floor(Math.random() * state.subjects.length);
@@ -772,11 +806,63 @@
       const subject1 = state.subjects[idx1];
       const subject2 = state.subjects[idx2];
       
-      // Get conversation response
+      // Get conversation response based on topic
       const responses = conversationResponses[subject1.archetype];
       if (!responses) return;
       
-      const response = responses[subject2.archetype] || "I see.";
+      let response = responses[subject2.archetype] || "I see.";
+      
+      // Add topic context to make it make sense
+      const topicResponses = {
+        status_seeker: [
+          `I've been handling ${currentTopic} for months.`,
+          `When it comes to ${currentTopic}, people listen to ME.`,
+          `I told you about ${currentTopic} weeks ago.`
+        ],
+        quiet_one: [
+          `...${currentTopic}?`,
+          `I've noticed things about ${currentTopic}.`,
+          `*regarding ${currentTopic}*`
+        ],
+        talker: [
+          `Oh! Speaking of ${currentTopic}, did I tell you...`,
+          `Wait, about ${currentTopic}...`,
+          `This reminds me of when we discussed ${currentTopic}...`
+        ],
+        drama_creator: [
+          `Oh, ${currentTopic}? That's SUPPOSED to be secret.`,
+          `Interesting how ${currentTopic} just... happened.`,
+          `And who exactly knows about ${currentTopic}?`
+        ],
+        hidden_agenda: [
+          `We should discuss ${currentTopic} privately.`,
+          `The less said about ${currentTopic}, the better.`,
+          `I have concerns about ${currentTopic}.`
+        ],
+        true_believer: [
+          `${currentTopic} is essential to our mission.`,
+          `Those who question ${currentTopic} don't understand.`,
+          `We must remain united on ${currentTopic}.`
+        ],
+        survivor: [
+          `Just... don't involve me with ${currentTopic}.`,
+          `Whatever happened with ${currentTopic}...`,
+          `${currentTopic}? I just want to stay out of trouble.`
+        ],
+        manipulator: [
+          `Tell me more about ${currentTopic}...`,
+          `I think we should discuss ${currentTopic} when no one's listening.`,
+          `You seem to know a lot about ${currentTopic}.`
+        ]
+      };
+      
+      // 50% chance of topic-specific message
+      if (Math.random() < 0.5) {
+        const topicMsgs = topicResponses[subject1.archetype] || [];
+        if (topicMsgs.length > 0) {
+          response = topicMsgs[Math.floor(Math.random() * topicMsgs.length)];
+        }
+      }
       
       // Add message
       const msg = {
@@ -805,10 +891,12 @@
 
     function renderMessages() {
       const container = document.getElementById('messageStream');
+      const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+      
       container.innerHTML = state.messages.slice(-30).map(msg => {
         const subject = state.subjects.find(s => s.id === msg.subjectId);
         return `
-          <div class="message" onclick="selectSubject('${msg.subjectId}')">
+          <div class="message ${msg.conversation ? 'conversation' : ''}" onclick="selectSubject('${msg.subjectId}')">
             <div class="message-header">
               <span class="message-id">${msg.subjectId} // ${subject ? subject.name : 'UNKNOWN'}</span>
               <span class="message-timestamp">${msg.timestamp}</span>
@@ -819,8 +907,10 @@
         `;
       }).join('');
       
-      // Auto-scroll to bottom
-      container.scrollTop = container.scrollHeight;
+      // Auto-scroll only if user was at bottom
+      if (wasAtBottom) {
+        container.scrollTop = container.scrollHeight;
+      }
     }
 
     function renderSubjects() {

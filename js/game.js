@@ -403,12 +403,7 @@ function loadDailyCase() {
 const COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
 function getCooldownRemaining() {
-  try {
-    const last = localStorage.getItem('observer_last_case');
-    if (!last) return 0;
-    const elapsed = Date.now() - parseInt(last, 10);
-    return Math.max(0, COOLDOWN_MS - elapsed);
-  } catch(e) { return 0; }
+  return 0; // cooldown disabled
 }
 
 function saveCaseTimestamp() {

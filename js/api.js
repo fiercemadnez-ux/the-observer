@@ -201,17 +201,35 @@ async function generateMessageFromAI(subject) {
   const crimeEN   = state.currentCase ? state.currentCase.crime.en : '';
   const crimePT   = state.currentCase ? state.currentCase.crime.pt : '';
 
-  const systemPrompt =
-    `You are ${subject.name}, someone in ${settingEN}. You are chatting in the group's shared channel.\n` +
-    `You have NO idea anyone is monitoring this conversation. Behave naturally for your environment.\n` +
-    `Your speech, references, and concerns should fit the context of ${settingEN}.\n` +
-    (crimeEN ? `Something happened recently that everyone here knows about: "${crimeEN}". It may come up, or not.\n` : '') +
-    `Your personality: ${archetypeTraits.en[archetype]}\n` +
-    guiltyExtra + clueExtra + `\n` +
-    `Recent chat history:\n${recentLog || '(channel just opened)'}\n\n` +
-    `Write your next message as this person. Mix topics — react to others, bring up something from your world, or comment on the recent event.\n` +
-    `YOUR RESPONSE MUST BE ONLY THIS JSON, nothing else, no explanation, no prefix:\n` +
-    `{"en": "message in English", "pt": "mensagem em português"}`;
+  const lang = state.lang;
+  const isBR = lang === 'pt';
+  const settingLabel = isBR ? settingPT : settingEN;
+  const crimeLabel   = isBR ? crimePT   : crimeEN;
+  const archTraits   = isBR ? archetypeTraits.pt[archetype] : archetypeTraits.en[archetype];
+  const guiltyExtraLocal = isBR
+    ? ' Você está escondendo algo sério e está sob pressão interna. Pode ser levemente defensivo, evitar certos tópicos ou compensar com normalidade. Nunca mencione o que fez.'
+    : guiltyExtra;
+  const clueExtraLocal = clueHint
+    ? (isBR ? ` Aluda sutilmente a: "${clueHint}".` : ` Subtly allude to: "${clueHint}".`)
+    : '';
+
+  const systemPrompt = isBR
+    ? `Você é ${subject.name}, alguém em ${settingLabel}. Está conversando no canal do grupo.\n` +
+      `Você NÃO sabe que está sendo monitorado. Comporte-se naturalmente para o ambiente.\n` +
+      `Sua fala, referências e preocupações devem combinar com o contexto de ${settingLabel}.\n` +
+      (crimeLabel ? `Algo aconteceu recentemente que todos aqui sabem: "${crimeLabel}". Pode ser mencionado ou não.\n` : '') +
+      `Sua personalidade: ${archTraits}\n` +
+      guiltyExtraLocal + clueExtraLocal + `\n` +
+      `Histórico recente do chat:\n${recentLog || '(canal recém aberto)'}\n\n` +
+      `Escreva sua próxima mensagem como essa pessoa, em português brasileiro. Responda APENAS com o texto da mensagem, sem JSON, sem explicação.`
+    : `You are ${subject.name}, someone in ${settingLabel}. You are chatting in the group's shared channel.\n` +
+      `You have NO idea anyone is monitoring this conversation. Behave naturally for your environment.\n` +
+      `Your speech, references, and concerns should fit the context of ${settingLabel}.\n` +
+      (crimeLabel ? `Something happened recently that everyone here knows about: "${crimeLabel}". It may come up, or not.\n` : '') +
+      `Your personality: ${archTraits}\n` +
+      guiltyExtra + clueExtra + `\n` +
+      `Recent chat history:\n${recentLog || '(channel just opened)'}\n\n` +
+      `Write your next message as this person. Respond ONLY with the message text, no JSON, no explanation.`;
 
   try {
     const response = await fetch(NVIDIA_API_URL, {
@@ -228,23 +246,25 @@ async function generateMessageFromAI(subject) {
     if (!response.ok) throw new Error(`API ${response.status}`);
     const data = await response.json();
     const raw = data.choices[0].message.content.trim();
-    const result = parseJsonResponse(raw);
-    if (!result) throw new Error('No JSON');
-    return result;
+    if (!raw) throw new Error('Empty response');
+    // Store as bilingual-compatible object with current lang filled in
+    return { en: isBR ? raw : raw, pt: isBR ? raw : raw, [lang]: raw };
   } catch (err) {
     console.error('[API ERROR] generateMessageFromAI:', err.message);
-    const enTemplates = messageTemplates[archetype].en;
-    const ptTemplates = messageTemplates[archetype].pt;
-    const i = Math.floor(Math.random() * enTemplates.length);
-    return { en: enTemplates[i], pt: ptTemplates[i] };
+    const templates = messageTemplates[archetype][lang] || messageTemplates[archetype].en;
+    const i = Math.floor(Math.random() * templates.length);
+    const text = templates[i];
+    return { en: text, pt: text };
   }
 }
 
-// Generic one-shot AI call — returns bilingual {en, pt}
+// Generic one-shot AI call — uses current language, returns {en, pt} compatible object
 async function callAI(systemPromptEN, systemPromptPT) {
-  const prompt =
-    systemPromptEN + '\n---\n' + systemPromptPT +
-    '\nReply ONLY with JSON: {"en": "<english>", "pt": "<portuguese>"}. No markdown.';
+  const lang = state.lang;
+  const prompt = lang === 'pt' ? systemPromptPT : systemPromptEN;
+  const instruction = lang === 'pt'
+    ? 'Responda APENAS com o texto da mensagem em português, sem JSON.'
+    : 'Respond ONLY with the message text in English, no JSON.';
   try {
     const response = await fetch(NVIDIA_API_URL, {
       method: 'POST',
@@ -253,7 +273,7 @@ async function callAI(systemPromptEN, systemPromptPT) {
         model: NVIDIA_MODEL,
         messages: [
           { role: 'system', content: prompt },
-          { role: 'user', content: 'Respond with JSON only.' }
+          { role: 'user', content: instruction }
         ],
         max_tokens: 150,
         temperature: 0.95,
@@ -263,9 +283,8 @@ async function callAI(systemPromptEN, systemPromptPT) {
     if (!response.ok) throw new Error(`API ${response.status}`);
     const data = await response.json();
     const raw = data.choices[0].message.content.trim();
-    const result = parseJsonResponse(raw);
-    if (!result) throw new Error('No JSON');
-    return result;
+    if (!raw) throw new Error('Empty');
+    return { en: raw, pt: raw, [lang]: raw };
   } catch (err) {
     console.warn('AI fallback callAI:', err.message);
     return { en: '...', pt: '...' };

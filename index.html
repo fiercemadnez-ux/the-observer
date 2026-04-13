@@ -139,6 +139,7 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.9rem;
       line-height: 1.6;
+      max-height: 500px;
     }
 
     /* Messages Stream */
@@ -323,19 +324,21 @@
 
     /* Scrollbar */
     ::-webkit-scrollbar {
-      width: 6px;
+      width: 8px;
     }
 
     ::-webkit-scrollbar-track {
       background: var(--bg-primary);
+      border-radius: 4px;
     }
 
     ::-webkit-scrollbar-thumb {
-      background: var(--bg-tertiary);
+      background: var(--text-dim);
+      border-radius: 4px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background: var(--text-dim);
+      background: var(--text-secondary);
     }
 
     /* Responsive */
@@ -607,6 +610,90 @@
       ]
     };
 
+    // Conversation responses - how archetypes respond to each other
+    const conversationResponses = {
+      status_seeker: {
+        status_seeker: "I respect your experience, but I've been here longer.",
+        quiet_one: "Why so quiet? Afraid to share your thoughts?",
+        talker: "Can you get to the point? I don't have all day.",
+        drama_creator: "I know what you're doing. It's transparent.",
+        hidden_agenda: "Let's cut the nonsense. What's your real agenda?",
+        true_believer: "I appreciate conviction, but leadership matters.",
+        survivor: "Just following orders won't get you anywhere.",
+        manipulator: "Flattery won't work on me. I see through it."
+      },
+      quiet_one: {
+        status_seeker: "...",
+        quiet_one: "*nods*",
+        talker: "Keep talking. I'm listening.",
+        drama_creator: "Is there a point to this?",
+        hidden_agenda: "*eyes narrow*",
+        true_believer: "I understand your conviction.",
+        survivor: "We all have our reasons.",
+        manipulator: "*remains silent*"
+      },
+      talker: {
+        status_seeker: "Actually, I was saying...",
+        quiet_one: "Come on, say something! Don't be shy!",
+        talker: "That reminds me of... wait, what were we talking about?",
+        drama_creator: "Okay okay, let's calm down everyone...",
+        hidden_agenda: "But that's not what we were discussing before...",
+        true_believer: "I mean, I get where you're coming from...",
+        survivor: "Yeah, let's just all get along, okay?",
+        manipulator: "You're so smart, you probably understand this better than me."
+      },
+      drama_creator: {
+        status_seeker: "Oh wow, look at Mr. Important over here.",
+        quiet_one: "Cat got your tongue? Or are you just boring?",
+        talker: "Boring story. Try something interesting for once.",
+        drama_creator: "Oh we're both here for the drama? Interesting.",
+        hidden_agenda: "What are you hiding? Or is it just boring secrets?",
+        true_believer: "How noble. Have you considered you're wrong?",
+        survivor: "Boring. Just go along with it like everyone else.",
+        manipulator: "Oh, playing the nice card now? Cute."
+      },
+      hidden_agenda: {
+        status_seeker: "Let's stay focused on the actual work.",
+        quiet_one: "You observe a lot. Too much, maybe.",
+        talker: "We're getting off track. What did you want to discuss?",
+        drama_creator: "Not interested in your games.",
+        hidden_agenda: "We understand each other. Let's keep it that way.",
+        true_believer: "I appreciate your clarity, but there's more at play here.",
+        survivor: "Smart. The less you know, the safer you are.",
+        manipulator: "I know your type. Let's skip the performance."
+      },
+      true_believer: {
+        status_seeker: "Leadership is earned, not claimed.",
+        quiet_one: "Wise words are better than many words.",
+        talker: "Words are cheap. Actions matter.",
+        drama_creator: "You're spreading division. That's counterproductive.",
+        hidden_agenda: "I see your hesitation. That's concerning.",
+        true_believer: "We are united in purpose.",
+        survivor: "Survival alone isn't enough. You need conviction.",
+        manipulator: "Your words are hollow. I see through you."
+      },
+      survivor: {
+        status_seeker: "Sure, whatever you say, boss.",
+        quiet_one: "You seem like you know how to stay under the radar.",
+        talker: "Getting tired of talking. Just want to get through this.",
+        drama_creator: "Can we please not make things complicated?",
+        hidden_agenda: "I don't want to know what you're planning.",
+        true_believer: "I respect the conviction. Just... keep me out of it.",
+        survivor: "Same situation, different day. Let's just survive together.",
+        manipulator: "I'll play along. Just don't drag me into your mess."
+      },
+      manipulator: {
+        status_seeker: "You're so experienced. I'm sure you have much to teach me.",
+        quiet_one: "You're the observant type, aren't you? What do you see?",
+        talker: "You have such interesting stories! Tell me more...",
+        drama_creator: "I love the energy here! Keep it going.",
+        hidden_agenda: "We should talk privately. I think we understand each other.",
+        true_believer: "Your conviction is inspiring. Truly.",
+        survivor: "You're practical. I appreciate that. Let's work together.",
+        manipulator: "*slight smile* We understand each other, don't we?"
+      }
+    };
+
     // Generate a random subject
     function generateSubject() {
       const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
@@ -666,6 +753,45 @@
       }
       
       render();
+      
+      // Start conversation loop
+      setInterval(triggerConversation, 8000);
+    }
+
+    // Trigger a conversation between two subjects
+    function triggerConversation() {
+      if (state.subjects.length < 2) return;
+      
+      // Pick two random subjects
+      const idx1 = Math.floor(Math.random() * state.subjects.length);
+      let idx2 = Math.floor(Math.random() * state.subjects.length);
+      while (idx2 === idx1) {
+        idx2 = Math.floor(Math.random() * state.subjects.length);
+      }
+      
+      const subject1 = state.subjects[idx1];
+      const subject2 = state.subjects[idx2];
+      
+      // Get conversation response
+      const responses = conversationResponses[subject1.archetype];
+      if (!responses) return;
+      
+      const response = responses[subject2.archetype] || "I see.";
+      
+      // Add message
+      const msg = {
+        id: `MSG-${String(state.messages.length + 1).padStart(4, '0')}`,
+        subjectId: subject1.id,
+        text: `[TO ${subject2.id}] ${response}`,
+        timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        flagged: false,
+        conversation: true
+      };
+      
+      state.messages.push(msg);
+      addSignal(`Conversation: ${subject1.id} → ${subject2.id}`);
+      
+      render();
     }
 
     // Render the UI
@@ -679,7 +805,7 @@
 
     function renderMessages() {
       const container = document.getElementById('messageStream');
-      container.innerHTML = state.messages.slice(-20).map(msg => {
+      container.innerHTML = state.messages.slice(-30).map(msg => {
         const subject = state.subjects.find(s => s.id === msg.subjectId);
         return `
           <div class="message" onclick="selectSubject('${msg.subjectId}')">
@@ -693,6 +819,7 @@
         `;
       }).join('');
       
+      // Auto-scroll to bottom
       container.scrollTop = container.scrollHeight;
     }
 

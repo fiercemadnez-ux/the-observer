@@ -554,7 +554,7 @@ function showResult(win, accused, focusBias = 0) {
       <div style="color: var(--accent); margin-bottom:8px">${t.result_guilty_label}: ${accused.id} // ${accused.name}</div>
       <div style="color: var(--warning); font-size:0.75rem; margin-bottom:8px">▸ Responsibility: ${respLabel}</div>
       ${clueCount > 0 ? `<div style="color: var(--warning); font-size:0.75rem; margin-bottom:8px">▸ ${clueCount} signal${clueCount > 1 ? 's' : ''} detected in the transcript</div>` : ''}
-      <div style="color: var(--text-dim); font-size:0.75rem">${t.result_day_label} ${String(state.caseCount).padStart(3,'0')} — ${t.result_acc_label}: ${state.accusationCount}</div>
+      <div style="color: var(--text-dim); font-size:0.75rem">${t.result_case_label} ${String(state.caseCount).padStart(3,'0')} — ${t.result_acc_label}: ${state.accusationCount}</div>
       ${focusBias > 30 ? `<div style="color: var(--warning); font-size:0.7rem; margin-top:8px; border-top:1px solid var(--text-dim); padding-top:8px">⚠ You focused on this subject ${focusBias}% of the time. Did that affect your judgment?</div>` : ''}
       ${patAnalysis}
     `;

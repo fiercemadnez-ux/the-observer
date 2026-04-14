@@ -678,11 +678,10 @@ async function startNewCase() {
 function saveRanking() {}
 function loadRanking() {}
 
-// --- DAILY CASE PERSISTENCE ---
+// --- CASE PERSISTENCE ---
 
-function Date.now().toString() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+function getTimestamp() {
+  return getTimestamp();
 }
 
 function saveDailyCase() {

@@ -29,7 +29,7 @@ async function init() {
   }
 
   const remaining = 0; // Cooldown disabled
-  if (false) // Cooldown disabled {
+  if (false) { // Cooldown disabled
     showCooldownScreen(remaining);
   } else {
     await fetchDailySeed();

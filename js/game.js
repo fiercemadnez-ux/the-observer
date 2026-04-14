@@ -440,7 +440,7 @@ function interpretSubject(type) {
     subjectId: s.id,
     type: type,
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    day: state.day
+    day: state.caseCount
   });
   
   const label = state.lang === 'pt' ? interp.pt : interp.en;
@@ -490,7 +490,7 @@ function accuseSubject() {
     
     // Track correct accusation
     state.ranking.push({
-      day: state.day,
+      day: state.caseCount,
       win: true,
       accusationCount: state.accusationCount,
       guiltyName: state.currentCase.guiltyName,
@@ -512,7 +512,7 @@ function accuseSubject() {
     // Store wrong accusation for future case "legacies"
     state.wrongAccusations = state.wrongAccusations || [];
     state.wrongAccusations.push({
-      day: state.day,
+      day: state.caseCount,
       accusedName: accused.name,
       accusedId: accused.id
     });
@@ -554,7 +554,7 @@ function showResult(win, accused, focusBias = 0) {
       <div style="color: var(--accent); margin-bottom:8px">${t.result_guilty_label}: ${accused.id} // ${accused.name}</div>
       <div style="color: var(--warning); font-size:0.75rem; margin-bottom:8px">▸ Responsibility: ${respLabel}</div>
       ${clueCount > 0 ? `<div style="color: var(--warning); font-size:0.75rem; margin-bottom:8px">▸ ${clueCount} signal${clueCount > 1 ? 's' : ''} detected in the transcript</div>` : ''}
-      <div style="color: var(--text-dim); font-size:0.75rem">${t.result_day_label} ${String(state.day).padStart(3,'0')} — ${t.result_acc_label}: ${state.accusationCount}</div>
+      <div style="color: var(--text-dim); font-size:0.75rem">${t.result_day_label} ${String(state.caseCount).padStart(3,'0')} — ${t.result_acc_label}: ${state.accusationCount}</div>
       ${focusBias > 30 ? `<div style="color: var(--warning); font-size:0.7rem; margin-top:8px; border-top:1px solid var(--text-dim); padding-top:8px">⚠ You focused on this subject ${focusBias}% of the time. Did that affect your judgment?</div>` : ''}
       ${patAnalysis}
     `;
@@ -604,11 +604,11 @@ function revealClues() {
 
 // --- NEXT DAY ---
 
-async function nextDay() {
+async function nextCase() {
   document.getElementById('resultOverlay').style.display = 'none';
   stopChatLoop();
   saveCaseTimestamp();
-  state.day++;
+  state.caseCount++;
   state.subjects = [];
   state.messages = [];
   state.signals = [];
@@ -651,7 +651,7 @@ async function startNewCase() {
   // Update terminal title with setting
   const termTitle = document.getElementById('terminal-title');
   if (termTitle && caseData.setting) {
-    termTitle.textContent = `▸ ${caseData.setting[state.lang].toUpperCase()} // CHANNEL_${String(state.day).padStart(2,'0')}`;
+    termTitle.textContent = `▸ ${caseData.setting[state.lang].toUpperCase()} // CHANNEL_${String(state.caseCount).padStart(2,'0')}`;
   }
 
   addSignal(i18n[state.lang].sig_new_case);
@@ -680,7 +680,7 @@ function loadRanking() {}
 
 // --- DAILY CASE PERSISTENCE ---
 
-function todayKey() {
+function Date.now().toString() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
@@ -688,11 +688,11 @@ function todayKey() {
 function saveDailyCase() {
   try {
     const snapshot = {
-      date: todayKey(),
+      // date removed - continuous play
       subjects: state.subjects,
       currentCase: state.currentCase,
       messages: state.messages,
-      day: state.day,
+      day: state.caseCount,
       reputation: state.reputation,
       trustLevel: state.trustLevel,
       accusationCount: state.accusationCount,
@@ -713,12 +713,12 @@ function loadDailyCase() {
     const raw = localStorage.getItem('observer_daily');
     if (!raw) return false;
     const snap = JSON.parse(raw);
-    if (snap.date !== todayKey()) return false;
+    // No daily lock - cases can be played continuously
     // Restore state
     state.subjects       = snap.subjects || [];
     state.currentCase    = snap.currentCase || null;
     state.messages       = snap.messages || [];
-    state.day            = snap.day || 1;
+    state.caseCount            = snap.day || 1;
     state.reputation     = snap.reputation || 0;
     state.trustLevel     = snap.trustLevel || 50;
     state.accusationCount= snap.accusationCount || 0;

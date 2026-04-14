@@ -19,7 +19,7 @@ async function init() {
     document.getElementById('caseInfo').style.display = 'block';
     const termTitle = document.getElementById('terminal-title');
     if (termTitle && state.currentCase && state.currentCase.setting) {
-      termTitle.textContent = `\u25b8 ${state.currentCase.setting[state.lang].toUpperCase()} // CHANNEL_${String(state.day).padStart(2,'0')}`;
+      termTitle.textContent = `\u25b8 ${state.currentCase.setting[state.lang].toUpperCase()} // CHANNEL_${String(state.caseCount).padStart(2,'0')}`;
     }
     render();
     if (!state.caseResolved) {
@@ -28,8 +28,8 @@ async function init() {
     return;
   }
 
-  const remaining = getCooldownRemaining();
-  if (remaining > 0) {
+  const remaining = 0; // Cooldown disabled
+  if (false) // Cooldown disabled {
     showCooldownScreen(remaining);
   } else {
     await fetchDailySeed();

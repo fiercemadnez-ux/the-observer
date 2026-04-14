@@ -170,7 +170,7 @@ function renderRanking() {
 function updateStats() {
   const t = i18n[state.lang];
   const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  setText('dayCounter', String(state.day).padStart(3, '0'));
+  setText('dayCounter', String(state.caseCount).padStart(3, '0'));
   
   // Reputation tiers
   let repKey = 'rep_neutral';

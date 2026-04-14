@@ -1,6 +1,6 @@
 const i18n = {
   en: {
-    online: "ONLINE", day: "DAY", terminal: "▸ INCOMING TRANSMISSIONS // TERMINAL_07",
+    online: "ONLINE", day: "CASE", terminal: "▸ INCOMING TRANSMISSIONS // TERMINAL_07",
     analysis: "Subject Analysis", signals: "Signal Log", actions: "Actions",
     btnExpose: "▸ MARK as suspect", btnFocus: "▸ FOCUS on subject",
     btnClear: "▸ CLEAR suspicion", btnAccuse: "▸ ACCUSE selected",
@@ -19,8 +19,8 @@ const i18n = {
     crime_label: "INCIDENT",
     result_win: "CASE CLOSED", result_loss: "WRONG ACCUSATION",
     result_guilty_label: "RESPONSIBLE PARTY",
-    result_day_label: "DAY", result_acc_label: "ACCUSATIONS",
-    next_day: "▸ NEXT DAY",
+    result_case_label: "CASE", result_acc_label: "ACCUSATIONS",
+    next_case: "▸ NEXT CASE",
     ranking_title: "CASE HISTORY", ranking_empty: "No cases in archive.",
     ranking_day: "D", ranking_acc: "acc",
     cooldown_title: "CHANNEL OFFLINE",

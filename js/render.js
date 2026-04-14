@@ -134,6 +134,20 @@ function renderSignals() {
   container.scrollTop = container.scrollHeight;
 }
 
+function renderSurveillance() {
+  const container = document.getElementById('surveillanceLog');
+  if (!state.surveillanceLog.length) {
+    container.innerHTML = '<div style="color:var(--text-dim);font-size:0.7rem">No activity recorded</div>';
+    return;
+  }
+  container.innerHTML = state.surveillanceLog.slice(-15).map(entry => {
+    const subject = state.subjects.find(s => s.id === entry.subjectId);
+    const subjectName = subject ? subject.name : entry.subjectId;
+    return `<div class="surveillance-entry"><span class="surv-subject">${subjectName}:</span> <span class="surv-action">${entry.action}</span></div>`;
+  }).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
 function renderRanking() {
   const t = i18n[state.lang];
   const container = document.getElementById('rankingList');
@@ -196,6 +210,7 @@ function render() {
   renderMessages();
   renderSubjects();
   renderSignals();
+  renderSurveillance();
   renderRanking();
   updateStats();
 }

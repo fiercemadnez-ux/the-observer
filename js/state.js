@@ -129,5 +129,7 @@ const state = {
   accusationCount: 0,
   focusedSubjectId: null,
   focusCount: 0,
-  ranking: []          // [{ day, win, accusationCount, guiltyName, caseCrime }]
+  ranking: [],          // [{ day, win, accusationCount, guiltyName, caseCrime }]
+  surveillanceLog: [],  // [{ subjectId, action, timestamp }]
+  keywordMentions: {}   // { keyword: [subjectId, ...] }
 };

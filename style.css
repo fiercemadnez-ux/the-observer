@@ -493,3 +493,62 @@ mark.kw-highlight {
     font-size: 1.1rem;
   }
 }
+
+/* Surveillance Log */
+.panel-surveillance {
+  max-height: 150px;
+  overflow: hidden;
+}
+
+.surveillance-log {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.surveillance-entry {
+  padding: 3px 0;
+  border-bottom: 1px solid var(--bg-tertiary);
+}
+
+.surv-subject {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.surv-action {
+  color: var(--text-secondary);
+}
+
+.surv-action:last-child {
+  color: var(--warning);
+}
+
+/* Chat Log Panel */
+.panel-chat-log {
+  max-height: 180px;
+  overflow: hidden;
+}
+
+.chat-log {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  max-height: 150px;
+  overflow-y: auto;
+  color: var(--text-dim);
+}
+
+.chat-log-entry {
+  padding: 2px 0;
+  border-bottom: 1px solid var(--bg-tertiary);
+}
+
+.chat-log-entry .speaker {
+  color: var(--text-secondary);
+}
+
+.chat-log-entry .dialogue {
+  color: var(--text-primary);
+  opacity: 0.7;
+}

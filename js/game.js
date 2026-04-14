@@ -95,6 +95,20 @@ function generateName() {
 async function generateMessage(subject) {
   const subjectHistory = state.messages.filter(m => m.subjectId === subject.id);
   const texts = await generateMessageFromAI(subject, subjectHistory);
+  
+  // Add surveillance action
+  const surveillanceActions = [
+    "checked phone", "looked around", "shifted weight", "tapped fingers",
+    "crossed arms", "glanced at door", "fidgeted", "stood still",
+    "looked down", "laughed nervously", "checked watch", "nodded",
+    "sighed", "looked away", "scratched head"
+  ];
+  const isNervous = Math.random() > 0.6;
+  const action = isNervous 
+    ? surveillanceActions[Math.floor(Math.random() * surveillanceActions.length)] + " ←nervous"
+    : surveillanceActions[Math.floor(Math.random() * surveillanceActions.length)];
+  addSurveillanceEntry(subject.id, action);
+  
   return {
     id: `MSG-${String(state.messages.length + 1).padStart(4, '0')}`,
     subjectId: subject.id,
@@ -110,6 +124,12 @@ function addSignal(text) {
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   });
   renderSignals();
+}
+
+function addSurveillanceEntry(subjectId, action) {
+  const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  state.surveillanceLog.push({ subjectId, action, timestamp });
+  if (state.surveillanceLog.length > 50) state.surveillanceLog.shift();
 }
 
 function selectSubject(id) {

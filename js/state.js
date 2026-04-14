@@ -117,7 +117,7 @@ const messageTemplates = {
 
 const state = {
   lang: 'en',
-  day: 1,
+  caseCount: 1,
   reputation: 0,
   trustLevel: 50,
   subjects: [],

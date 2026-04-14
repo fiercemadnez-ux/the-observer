@@ -718,7 +718,7 @@ function loadDailyCase() {
     state.subjects       = snap.subjects || [];
     state.currentCase    = snap.currentCase || null;
     state.messages       = snap.messages || [];
-    state.caseCount            = snap.day || 1;
+    state.caseCount            = snap.caseCount || 1;
     state.reputation     = snap.reputation || 0;
     state.trustLevel     = snap.trustLevel || 50;
     state.accusationCount= snap.accusationCount || 0;

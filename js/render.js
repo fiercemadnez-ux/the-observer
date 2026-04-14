@@ -159,7 +159,7 @@ function renderRanking() {
   container.innerHTML = [...state.ranking].reverse().map((entry, i) => `
     <div class="ranking-entry ${entry.win ? 'rank-win' : 'rank-loss'}">
       <div class="rank-top">
-        <span>${t.ranking_day}${String(entry.day).padStart(3,'0')}</span>
+        <span>${t.ranking_case}${String(entry.caseCount).padStart(3,'0')}</span>
         <span>${entry.win ? '✓' : '✗'} ${entry.accusationCount} ${t.ranking_acc}</span>
       </div>
       <div class="rank-crime">${typeof entry.caseCrime === 'object' ? (entry.caseCrime[state.lang] || entry.caseCrime.en) : entry.caseCrime}</div>
@@ -170,7 +170,7 @@ function renderRanking() {
 function updateStats() {
   const t = i18n[state.lang];
   const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  setText('dayCounter', String(state.caseCount).padStart(3, '0'));
+  setText('caseCounter', String(state.caseCount).padStart(3, '0'));
   
   // Reputation tiers
   let repKey = 'rep_neutral';
@@ -209,7 +209,7 @@ function render() {
   setText('title-actions', t.actions);
   setText('terminal-title', t.terminal);
   setText('label-online', t.online);
-  setText('label-day', t.day);
+  setText('label-case', t.case);
   setText('label-consciousness', t.consciousness || 'AWARENESS');
   setText('title-interpretations', t.interp_title || 'Interpretations');
   setText('interp-hint', t.interp_hint || 'What do you see in this person?');

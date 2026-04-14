@@ -58,6 +58,7 @@ function triggerGhostMessage(subject) {
   state.messages.push(msg);
   saveDailyCase();
   showNewMessageBadge();
+  checkSystemObservation();
 }
 
 async function autoChat() {
@@ -222,6 +223,64 @@ function addSignal(text) {
   renderSignals();
 }
 
+// System messages that observe the player
+const SYSTEM_OBSERVATIONS = {
+  en: [
+    "Pattern detected: You focus on quiet subjects.",
+    "Behavioral marker: Quick to accuse.",
+    "Analysis: You tend to trust first impressions.",
+    "Pattern: You rarely use CLEAR action.",
+    "Observation: You've been watching {name} more than others.",
+    "Data: Your accuracy drops after first suspicion.",
+    "Note: You're drawn to subjects with high status.",
+    "Profile: You prefer defensive interpretations."
+  ],
+  pt: [
+    "Padrão detectado: Você foca em sujeitos quietos.",
+    "Marcador comportamental: Rápido para acusar.",
+    "Análise: Você tende a confiar na primeira impressão.",
+    "Padrão: Você raramente usa a ação LIMPAR.",
+    "Observação: Você está assistindo {name} mais que outros.",
+    "Dados: Sua precisão cai após a primeira suspeita.",
+    "Nota: Você é atraído por sujeitos de alto status.",
+    "Perfil: Você prefere interpretações defensivas."
+  ]
+};
+
+function triggerSystemObservation() {
+  // Only trigger when trust is moderate/high (system thinks it knows you)
+  if (state.trustLevel < 40) return;
+  if (state.caseResolved) return;
+  if (state.messages.length < 10) return;
+  
+  const lang = state.lang;
+  const pool = SYSTEM_OBSERVATIONS[lang] || SYSTEM_OBSERVATIONS.en;
+  
+  // Build observation based on actual player behavior
+  let obs = pool[Math.floor(Math.random() * pool.length)];
+  
+  // Customize with actual data
+  if (obs.includes('{name}')) {
+    const candidates = state.subjects.filter(s => s.status !== 'ally');
+    const target = candidates[Math.floor(Math.random() * candidates.length)];
+    if (target) {
+      obs = obs.replace('{name}', target.name);
+    }
+  }
+  
+  addSignal(`[SYSTEM] ${obs}`);
+}
+
+// Trigger system observation periodically (every 20 messages after 10)
+let systemObsCounter = 0;
+function checkSystemObservation() {
+  systemObsCounter++;
+  if (systemObsCounter >= 20 && Math.random() < 0.3) {
+    triggerSystemObservation();
+    systemObsCounter = 0;
+  }
+}
+
 function addSurveillanceEntry(subjectId, action) {
   const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   state.surveillanceLog.push({ subjectId, action, timestamp });
@@ -279,6 +338,7 @@ async function triggerOrganicReaction(triggerSubject) {
     state.messages.push(reactMsg);
     saveDailyCase();
     showNewMessageBadge();
+    checkSystemObservation();
   }
 }
 
@@ -476,6 +536,13 @@ function showResult(win, accused, focusBias = 0) {
     revealClues();
     const clueCount = state.messages.filter(m => m.isClue).length;
     
+    // Analyze player patterns
+    const interpCount = state.interpretations.length;
+    const defInterps = state.interpretations.filter(i => i.type === 'defensive').length;
+    const patAnalysis = interpCount > 0 && defInterps > 0 
+      ? `<div style="color:var(--text-dim);font-size:0.65rem;margin-top:4px">▸ Pattern: ${defInterps}/${interpCount} interpretations were "defensive"</div>`
+      : '';
+    
     // Show responsibility type instead of just "guilty"
     const respType = state.currentCase.responsibilityType;
     const respLabel = state.lang === 'pt' 
@@ -489,6 +556,7 @@ function showResult(win, accused, focusBias = 0) {
       ${clueCount > 0 ? `<div style="color: var(--warning); font-size:0.75rem; margin-bottom:8px">▸ ${clueCount} signal${clueCount > 1 ? 's' : ''} detected in the transcript</div>` : ''}
       <div style="color: var(--text-dim); font-size:0.75rem">${t.result_day_label} ${String(state.day).padStart(3,'0')} — ${t.result_acc_label}: ${state.accusationCount}</div>
       ${focusBias > 30 ? `<div style="color: var(--warning); font-size:0.7rem; margin-top:8px; border-top:1px solid var(--text-dim); padding-top:8px">⚠ You focused on this subject ${focusBias}% of the time. Did that affect your judgment?</div>` : ''}
+      ${patAnalysis}
     `;
   } else {
     // Wrong accusation - show the damage
@@ -632,7 +700,9 @@ function saveDailyCase() {
       consciousnessLevel: state.consciousnessLevel,
       casePhase: state.casePhase,
       focusHistory: state.focusHistory,
-      wrongAccusations: state.wrongAccusations
+      wrongAccusations: state.wrongAccusations,
+      interpretations: state.interpretations,
+      playerPatterns: state.playerPatterns
     };
     localStorage.setItem('observer_daily', JSON.stringify(snapshot));
   } catch(e) {}

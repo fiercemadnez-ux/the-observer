@@ -182,28 +182,53 @@ async function generateCase(subjects) {
     ? RESPONSIBILITY_TYPES[responsibilityType].desc_pt 
     : RESPONSIBILITY_TYPES[responsibilityType].desc_en;
 
-  const systemPrompt =
-    `You are generating a background scenario for a hidden surveillance observation game.\n` +
-    `Setting: ${setting}. These people share a group chat and do NOT know they are being monitored.\n` +
-    `Characters: ${names}.\n` +
-    `Case Type: ${state.lang === 'pt' ? template.pt : template.en} - ${templateDesc}\n` +
-    `Responsibility Type: ${state.lang === 'pt' ? RESPONSIBILITY_TYPES[responsibilityType].pt : RESPONSIBILITY_TYPES[responsibilityType].en} (${respDesc}).\n` +
-    `The responsible person is: ${guiltySubject.id} (${guiltySubject.name}).\n` +
-    `Generate a dark incident that fits the case type. It's about SOCIAL DYNAMICS, not just an isolated act.\n` +
-    `The player observes behavior to deduce who is RESPONSIBLE, not just "who did it".\n` +
-    `Respond ONLY with JSON:\n` +
-    `{\n` +
-    `  "crime_en": "1 sentence describing the social incident (focus on tension, not just action)",\n` +
-    `  "crime_pt": "1 frase descrevendo o incidente social (foco na tensão, não só na ação)",\n` +
-    `  "setting_en": "name of the setting in English",\n` +
-    `  "setting_pt": "nome do cenário em português",\n` +
-    `  "clues": ["behavioral clue 1 (NOT naming who is responsible)", "behavioral clue 2", "behavioral clue 3"],\n` +
-    `  "keywords_en": ["3 to 6 short keywords in English related to the incident"],\n` +
-    `  "keywords_pt": ["3 a 6 palavras-chave em português relacionadas ao incidente"],\n` +
-    `  "contradiction": "a statement or behavior that contradicts another person's version",\n` +
-    `  "deflection": "an attempt to change the subject or close the topic early"\n` +
-    `}\n` +
-    `Clues describe subtle behaviors. Keywords hint at the incident when spoken naturally. Include a contradiction between characters and a deflection attempt.`;
+  // Build prompt based on language
+  let prompt;
+  if (state.lang === 'pt') {
+    prompt = `Você é gerador de cenários para um jogo de vigilância oculta.\n` +
+      `Cenário: ${setting}.\n` +
+      `Personagens: ${names}.\n` +
+      `Tipo de Caso: ${template.pt} - ${templateDesc}\n` +
+      `Tipo de Responsabilidade: ${RESPONSIBILITY_TYPES[responsibilityType].pt} (${respDesc}).\n` +
+      `A pessoa responsável é: ${guiltySubject.id} (${guiltySubject.name}).\n` +
+      `Gere um incidente escuro que se encaixa no tipo de caso. É sobre DINÂMICA SOCIAL, não apenas um ato isolado.\n` +
+      `O jogador observa o comportamento para deduzir quem é RESPONSÁVEL, não apenas "quem fez".\n` +
+      ` Responda APENAS com JSON:\n` +
+      `{\n` +
+      `  "crime_en": "1 frase em INGLÊS descrevendo o incidente social",\n` +
+      `  "crime_pt": "1 frase em PORTUGUÊS descrevendo o incidente social (foco na tensão)",\n` +
+      `  "setting_en": "nome do cenário em inglês",\n` +
+      `  "setting_pt": "nome do cenário em português",\n` +
+      `  "clues": ["pista comportamental 1 (NÃO nomeando o responsável)", "pista 2", "pista 3"],\n` +
+      `  "keywords_en": ["3 a 6 palavras-chave em INGLÊS relacionadas ao incidente"],\n` +
+      `  "keywords_pt": ["3 a 6 palavras-chave em PORTUGUÊS relacionadas ao incidente"],\n` +
+      `  "contradiction": "uma afirmação que contradiz a versão de outra pessoa",\n` +
+      `  "deflection": "uma tentativa de mudar o assunto ou encerrar o tópico cedo"\n` +
+      `}\n` +
+      `Pistas descrevem comportamentos sutis. Palavras-chave indicam o incidente quando faladas naturalmente. Inclua contradição e deflexão.`;
+  } else {
+    prompt = `You are generating a background scenario for a hidden surveillance observation game.\n` +
+      `Setting: ${setting}. These people share a group chat and do NOT know they are being monitored.\n` +
+      `Characters: ${names}.\n` +
+      `Case Type: ${template.en} - ${templateDesc}\n` +
+      `Responsibility Type: ${RESPONSIBILITY_TYPES[responsibilityType].en} (${respDesc}).\n` +
+      `The responsible person is: ${guiltySubject.id} (${guiltySubject.name}).\n` +
+      `Generate a dark incident that fits the case type. It's about SOCIAL DYNAMICS, not just an isolated act.\n` +
+      `The player observes behavior to deduce who is RESPONSIBLE, not just "who did it".\n` +
+      `Respond ONLY with JSON:\n` +
+      `{\n` +
+      `  "crime_en": "1 sentence describing the social incident (focus on tension, not just action)",\n` +
+      `  "crime_pt": "1 sentence in PORTUGUESE describing the incident",\n` +
+      `  "setting_en": "name of the setting in English",\n` +
+      `  "setting_pt": "name of the setting in Portuguese",\n` +
+      `  "clues": ["behavioral clue 1 (NOT naming who is responsible)", "behavioral clue 2", "behavioral clue 3"],\n` +
+      `  "keywords_en": ["3 to 6 short keywords in English related to the incident"],\n` +
+      `  "keywords_pt": ["3 to 6 short keywords in Portuguese related to the incident"],\n` +
+      `  "contradiction": "a statement or behavior that contradicts another person's version",\n` +
+      `  "deflection": "an attempt to change the subject or close the topic early"\n` +
+      `}\n` +
+      `Clues describe subtle behaviors. Keywords hint at the incident when spoken naturally. Include a contradiction between characters and a deflection attempt.`;
+  }
 
   try {
     const response = await fetch(NVIDIA_API_URL, {
@@ -211,7 +236,7 @@ async function generateCase(subjects) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: NVIDIA_MODEL,
-        messages: [{ role: 'user', content: systemPrompt }],
+        messages: [{ role: 'user', content: prompt }],
         max_tokens: 300,
         temperature: 0.9,
         stream: false
@@ -325,10 +350,10 @@ async function generateMessageFromAI(subject) {
       (crimeLabel ? ` Context: ${crimeLabel}.` : '');
 
   const userInstruction = isBR
-    ? `Histórico do chat:\n${recentLog || '(ninguém falou ainda)'}\n\n` +
-      `Escreva UMA mensagem NOVA como ${subject.name}, em português brasileiro.` +
+    ? `IMPORTANTE: Você deve responder em português brasileiro. SEM inglês.\n\nHistórico do chat:\n${recentLog || '(ninguém falou ainda)'}\n\n` +
+      `Escreva UMA mensagem NOVA como ${subject.name}, em português brasileiro. NADA em inglês.` +
       (clueExtraLocal ? ` ${clueExtraLocal}` : '') +
-      ` NÃO repita nenhuma mensagem acima. Responda SOMENTE com o texto da mensagem.`
+      ` Responda apenas com a mensagem, sem explicar.`
     : `Chat history:\n${recentLog || '(nobody has spoken yet)'}\n\n` +
       `Write ONE NEW message as ${subject.name}, in English.` +
       (clueExtra ? ` ${clueExtra}` : '') +
@@ -351,9 +376,36 @@ async function generateMessageFromAI(subject) {
     });
     if (!response.ok) throw new Error(`API ${response.status}`);
     const data = await response.json();
-    const raw = data.choices[0].message.content.trim();
+    let raw = data.choices[0].message.content.trim();
     if (!raw) throw new Error('Empty response');
-    return { en: raw, pt: raw, [lang]: raw };
+    
+    // Check if response is in correct language, if not use fallback
+    const isPortuguese = /^[a-zA-Zà-ÿÀ-ÿ].*$/i.test(raw) && 
+      (raw.match(/[áéíóúàèìòùãẽĩõũâêîôûäëïöü]/i) || 
+       /^(o|a|um|uma|eu|ele|ela|de|da|do|para|com|em|no|na|que|e|é|está|essa|esse|isso)/i.test(raw.toLowerCase()));
+    
+    // Simple heuristic: if mostly Portuguese characters, treat as PT
+    const ptChars = (raw.match(/[áéíóúàèìòùãẽĩõũâêîôûç]/gi) || []).length;
+    const enChars = (raw.match(/[qwertyuiop]/gi) || []).length;
+    const looksLikePT = ptChars > enChars || (ptChars > 3 && enChars < 3);
+    
+    // If AI responded in wrong language, use fallback
+    if ((isBR && !looksLikePT) || (!isBR && looksLikePT && ptChars > 5)) {
+      console.warn('[LANG] AI responded in wrong language, using fallback');
+      const templates = messageTemplates[archetype][lang] || messageTemplates[archetype].en;
+      const i = Math.floor(Math.random() * templates.length);
+      raw = templates[i];
+    }
+    
+    // Double check: if still looks wrong (too many English words), force fallback
+    const enWordCount = (raw.toLowerCase().match(/\b(i|me|my|the|is|to|for|that|this|with|have|was|are|be|it|you|we|they|just|like|so|but|not|do|does|did)\b/g) || []).length;
+    if (isBR && enWordCount > 2) {
+      const templates = messageTemplates[archetype].pt || messageTemplates[archetype].en;
+      raw = templates[Math.floor(Math.random() * templates.length)];
+      console.warn('[LANG] Forced PT fallback due to English words');
+    }
+    
+    return { en: isBR ? raw : raw, pt: isBR ? raw : raw, [lang]: raw };
   } catch (err) {
     console.error('[API ERROR] generateMessageFromAI:', err.message);
     const templates = messageTemplates[archetype][lang] || messageTemplates[archetype].en;

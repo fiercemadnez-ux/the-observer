@@ -57,7 +57,7 @@ const i18n = {
     result_win: "CASO ENCERRADO", result_loss: "ACUSAÇÃO INCORRETA",
     result_guilty_label: "PARTE RESPONSÁVEL",
     result_case_label: "CASO", result_acc_label: "ACUSAÇÕES",
-    next_case: "▸ PRÓXIMO DIA",
+    next_case: "▸ PRÓXIMO CASO",
     ranking_title: "HISTÓRICO DE CASOS", ranking_empty: "Nenhum caso no arquivo.",
     ranking_case: "D", ranking_acc: "ac",
     cooldown_title: "CANAL OFFLINE",

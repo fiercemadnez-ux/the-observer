@@ -582,10 +582,7 @@ function showResult(win, accused, focusBias = 0) {
   nextBtn.textContent = t.next_case;
   overlay.style.display = 'flex';
   
-  // Auto-advance after 3 seconds (optional - player can click manually)
-  setTimeout(() => {
-    nextBtn.click();
-  }, 3000);
+  // Remove auto-advance - user clicks button manually
 }
 
 function revealClues() {

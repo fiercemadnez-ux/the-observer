@@ -66,9 +66,98 @@ function parseJsonResponse(raw, allowRaw = false) {
 
 // --- CASE GENERATION ---
 
+// Tipos de responsabilidade em vez de apenas "culpa"
+const RESPONSIBILITY_TYPES = {
+  executor: {
+    en: "Executor",
+    pt: "Executor",
+    desc_en: "Directly performed the action",
+    desc_pt: "Realizou a ação diretamente"
+  },
+  instigator: {
+    en: "Instigator",
+    pt: "Instigador",
+    desc_en: "Made someone else do it",
+    desc_pt: "Feito alguém fazer"
+  },
+  facilitator: {
+    en: "Facilitator",
+    pt: "Facilitador",
+    desc_en: "Made the action possible",
+    desc_pt: "Tornou a ação possível"
+  },
+  accomplice: {
+    en: "Accomplice",
+    pt: "Cúmplice",
+    desc_en: "Knew and let it happen",
+    desc_pt: "Soube e deixou acontecer"
+  },
+  instrument: {
+    en: "Instrument",
+    pt: "Instrumento",
+    desc_en: "Was used without knowing",
+    desc_pt: "Foi usado sem saber"
+  }
+};
+
+// Modelos de caso mais pesados (tensão social real)
+const CASE_TEMPLATES = {
+  scapegoat: {
+    en: "Scapegoat",
+    pt: "Bode Expiatório",
+    desc_en: "An incident occurred, but the group wants to blame a specific person for political reasons.",
+    desc_pt: "Um incidente ocorreu, mas o grupo quer culpar uma pessoa específica por motivos políticos."
+  },
+  exclusion: {
+    en: "Gradual Exclusion",
+    pt: "Exclusão Gradual",
+    desc_en: "Someone was gradually isolated, and the incident is the culmination.",
+    desc_pt: "Alguém foi gradualmente isolado, e o incidente é a culminação."
+  },
+  manipulation: {
+    en: "Narrative Manipulation",
+    pt: "Manipulação Narrativa",
+    desc_en: "One person shaped the group's narrative, everyone repeats the same version.",
+    desc_pt: "Uma pessoa moldou a narrativa do grupo, todos repetem a mesma versão."
+  },
+  silence: {
+    en: "Complicit Silence",
+    pt: "Silêncio Cúmplice",
+    desc_en: "Everyone knew about something, nobody spoke, the incident happened.",
+    desc_pt: "Todos sabiam de algo, ninguém falou, o incidente aconteceu."
+  },
+  reputation_destruction: {
+    en: "Reputation Destruction",
+    pt: "Destruição de Reputação",
+    desc_en: "Someone planted false information about another person.",
+    desc_pt: "Alguém plantou informações falsas sobre outra pessoa."
+  },
+  pressure: {
+    en: "Induced Pressure",
+    pt: "Pressão Induzida",
+    desc_en: "Someone forced another person to do something they didn't want to.",
+    desc_pt: "Alguém forçou outra pessoa a fazer algo que não queria."
+  },
+  cover_up: {
+    en: "Cover-Up",
+    pt: "Encobrimento",
+    desc_en: "The truth was hidden to protect someone or something.",
+    desc_pt: "A verdade foi ocultada para proteger alguém ou algo."
+  }
+};
+
 async function generateCase(subjects) {
   const names = subjects.map(s => `${s.id} (${s.name}, archetype: ${s.archetype})`).join(', ');
   const guiltySubject = subjects[Math.floor(seededRand() * subjects.length)];
+
+  // Pick random responsibility type
+  const respTypes = Object.keys(RESPONSIBILITY_TYPES);
+  const responsibilityType = respTypes[Math.floor(seededRand() * respTypes.length)];
+  
+  // Pick random case template
+  const templateKeys = Object.keys(CASE_TEMPLATES);
+  const templateKey = templateKeys[Math.floor(seededRand() * templateKeys.length)];
+  const template = CASE_TEMPLATES[templateKey];
 
   // Pick a random setting for this case
   const settings = [
@@ -87,24 +176,34 @@ async function generateCase(subjects) {
   ];
   const setting = settings[Math.floor(seededRand() * settings.length)];
 
+  const t = i18n[state.lang] || { en: {}, pt: {} };
+  const templateDesc = state.lang === 'pt' ? template.desc_pt : template.desc_en;
+  const respDesc = state.lang === 'pt' 
+    ? RESPONSIBILITY_TYPES[responsibilityType].desc_pt 
+    : RESPONSIBILITY_TYPES[responsibilityType].desc_en;
+
   const systemPrompt =
     `You are generating a background scenario for a hidden surveillance observation game.\n` +
     `Setting: ${setting}. These people share a group chat and do NOT know they are being monitored.\n` +
     `Characters: ${names}.\n` +
-    `The guilty one is ALWAYS: ${guiltySubject.id} (${guiltySubject.name}).\n` +
-    `Generate a dark incident relevant to the setting that already happened. Characters chat normally, unaware.\n` +
-    `The player observes their behavior to deduce who is guilty.\n` +
+    `Case Type: ${state.lang === 'pt' ? template.pt : template.en} - ${templateDesc}\n` +
+    `Responsibility Type: ${state.lang === 'pt' ? RESPONSIBILITY_TYPES[responsibilityType].pt : RESPONSIBILITY_TYPES[responsibilityType].en} (${respDesc}).\n` +
+    `The responsible person is: ${guiltySubject.id} (${guiltySubject.name}).\n` +
+    `Generate a dark incident that fits the case type. It's about SOCIAL DYNAMICS, not just an isolated act.\n` +
+    `The player observes behavior to deduce who is RESPONSIBLE, not just "who did it".\n` +
     `Respond ONLY with JSON:\n` +
     `{\n` +
-    `  "crime_en": "1 sentence describing what happened (relevant to the setting)",\n` +
-    `  "crime_pt": "1 frase descrevendo o que aconteceu",\n` +
+    `  "crime_en": "1 sentence describing the social incident (focus on tension, not just action)",\n` +
+    `  "crime_pt": "1 frase descrevendo o incidente social (foco na tensão, não só na ação)",\n` +
     `  "setting_en": "name of the setting in English",\n` +
     `  "setting_pt": "nome do cenário em português",\n` +
-    `  "clues": ["behavioral clue 1 (NOT naming the culprit)", "behavioral clue 2", "behavioral clue 3"],\n` +
+    `  "clues": ["behavioral clue 1 (NOT naming who is responsible)", "behavioral clue 2", "behavioral clue 3"],\n` +
     `  "keywords_en": ["3 to 6 short keywords in English related to the incident"],\n` +
-    `  "keywords_pt": ["3 a 6 palavras-chave em português relacionadas ao incidente"]\n` +
+    `  "keywords_pt": ["3 a 6 palavras-chave em português relacionadas ao incidente"],\n` +
+    `  "contradiction": "a statement or behavior that contradicts another person's version",\n` +
+    `  "deflection": "an attempt to change the subject or close the topic early"\n` +
     `}\n` +
-    `Clues describe subtle behaviors. Keywords are words that hint at guilt when spoken naturally.`;
+    `Clues describe subtle behaviors. Keywords hint at the incident when spoken naturally. Include a contradiction between characters and a deflection attempt.`;
 
   try {
     const response = await fetch(NVIDIA_API_URL, {
@@ -132,7 +231,11 @@ async function generateCase(subjects) {
         pt: (parsed.keywords_pt || parsed.keywords_en || parsed.keywords || []).map(k => k.toLowerCase())
       },
       guiltyId: guiltySubject.id,
-      guiltyName: guiltySubject.name
+      guiltyName: guiltySubject.name,
+      responsibilityType: responsibilityType,
+      caseTemplate: templateKey,
+      contradiction: parsed.contradiction || '',
+      deflection: parsed.deflection || ''
     };
   } catch (err) {
     console.warn('Case gen fallback:', err.message);

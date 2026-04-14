@@ -119,17 +119,25 @@ const state = {
   lang: 'en',
   day: 1,
   reputation: 0,
+  trustLevel: 50, // 0-100: quanto mais alto, mais o sistema te ajuda (e influencia)
   subjects: [],
   messages: [],
   signals: [],
   selectedSubject: null,
   caseActive: false,
   caseResolved: false,
-  currentCase: null,   // { crime, guiltyId, guiltyName }
+  currentCase: null,   // { crime, guiltyId, guiltyName, responsibilityType, involved... }
   accusationCount: 0,
   focusedSubjectId: null,
   focusCount: 0,
+  focusTime: 0, // quanto tempo gastou focando (para calcular viés)
+  totalFocusTime: 0, // tempo total de foco em todos os personagens
+  focusHistory: [], // [{ subjectId, duration, interpretations... }]
+  interpretations: [], // [{ subjectId, type, timestamp }] - cada vez que jogador interpreta algo
   ranking: [],          // [{ day, win, accusationCount, guiltyName, caseCrime }]
   surveillanceLog: [],  // [{ subjectId, action, timestamp }]
-  keywordMentions: {}   // { keyword: [subjectId, ...] }
+  keywordMentions: {},   // { keyword: [subjectId, ...] }
+  consciousnessLevel: 0, // 0-100: quão cientes os personagens estão de serem observados
+  casePhase: 'normal', // 'normal', 'tension', 'deflection', 'breakdown'
+  messageWave: 0 // 0-3: onda atual do caso
 };

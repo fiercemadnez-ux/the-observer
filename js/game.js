@@ -96,6 +96,32 @@ async function generateMessage(subject) {
   const subjectHistory = state.messages.filter(m => m.subjectId === subject.id);
   const texts = await generateMessageFromAI(subject, subjectHistory);
   
+  // Track consciousness level - check if message contains "being watched" themes
+  const rawText = texts.en || texts.pt || '';
+  const watchThemes = [
+    "watch", "observe", "see", "know", "strange", "feeling", "paranoid",
+    "suspect", "looking", "camera", "monitor", "stranger", "weird",
+    "observando", "vendo", "sabendo", "estranho", "sentindo", "paranoico",
+    "suspeito", "olhando", "câmera", "monitor", "diferente"
+  ];
+  const hasWatchTheme = watchThemes.some(t => rawText.toLowerCase().includes(t));
+  if (hasWatchTheme) {
+    state.consciousnessLevel = Math.min(100, state.consciousnessLevel + 8);
+  }
+  
+  // Update case phase based on message count
+  const msgCount = state.messages.length;
+  if (msgCount >= 25 && state.casePhase === 'normal') {
+    state.casePhase = 'tension';
+    addSignal('[SYSTEM] Tone shift detected. Conversations becoming tense.');
+  } else if (msgCount >= 40 && state.casePhase === 'tension') {
+    state.casePhase = 'deflection';
+    addSignal('[SYSTEM] Pattern: Topics being deflected. Group appears to avoid subject.');
+  } else if (msgCount >= 55 && state.casePhase === 'deflection') {
+    state.casePhase = 'breakdown';
+    addSignal('[SYSTEM] Critical point. Social structure under stress.');
+  }
+  
   // Add surveillance action
   const surveillanceActions = [
     "checked phone", "looked around", "shifted weight", "tapped fingers",
@@ -103,7 +129,10 @@ async function generateMessage(subject) {
     "looked down", "laughed nervously", "checked watch", "nodded",
     "sighed", "looked away", "scratched head"
   ];
-  const isNervous = Math.random() > 0.6;
+  
+  // If consciousness is high, add more nervous actions
+  const nervousChance = 0.3 + (state.consciousnessLevel / 200); // 0.3 to 0.8
+  const isNervous = Math.random() > (1 - nervousChance);
   const action = isNervous 
     ? surveillanceActions[Math.floor(Math.random() * surveillanceActions.length)] + " ←nervous"
     : surveillanceActions[Math.floor(Math.random() * surveillanceActions.length)];
@@ -114,7 +143,8 @@ async function generateMessage(subject) {
     subjectId: subject.id,
     texts,  // { en, pt }
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    flagged: Math.random() > 0.8
+    flagged: Math.random() > 0.8,
+    phase: state.casePhase
   };
 }
 
@@ -198,14 +228,36 @@ function exposeSubject() {
   render();
 }
 
+let focusStartTime = null;
+
 function focusSubject() {
   // FOCUS — next 2 autochat messages will be from this subject
   if (state.caseResolved) return;
   if (!state.selectedSubject) return addSignal(i18n[state.lang].sig_no_subject);
   const s = state.subjects.find(sub => sub.id === state.selectedSubject);
+  
+  // Track focus start time for bias analysis
+  if (!focusStartTime) {
+    focusStartTime = Date.now();
+  }
+  
   state.focusedSubjectId = s.id;
   state.focusCount = 2;
   addSignal(`${i18n[state.lang].sig_focused}: ${s.id} // ${s.name}`);
+  
+  // Generate a "system insight" about focused subject - this creates bias
+  if (state.trustLevel > 30) {
+    const insights = [
+      "shows consistent pattern",
+      "behavioral anomalies detected",
+      "verbal inconsistency observed",
+      "response latency above average",
+      "topic avoidance detected"
+    ];
+    const insight = insights[Math.floor(Math.random() * insights.length)];
+    addSignal(`[SYSTEM] ${s.id}: ${insight}`);
+  }
+  
   render();
 }
 
@@ -227,6 +279,11 @@ function accuseSubject() {
   if (state.caseResolved) return;
   if (!state.selectedSubject) return addSignal(i18n[state.lang].sig_no_subject);
 
+  // Calculate bias percentage before accusation
+  const focusPercentage = state.totalFocusTime > 0 
+    ? Math.round((state.focusTime / state.totalFocusTime) * 100) 
+    : 0;
+
   state.accusationCount++;
   const accused = state.subjects.find(s => s.id === state.selectedSubject);
   const isCorrect = state.currentCase && accused.id === state.currentCase.guiltyId;
@@ -235,26 +292,43 @@ function accuseSubject() {
     accused.status = 'threat';
     state.caseResolved = true;
     state.reputation += 10;
+    state.trustLevel = Math.min(100, state.trustLevel + 5);
+    
+    // Track correct accusation
     state.ranking.push({
       day: state.day,
       win: true,
       accusationCount: state.accusationCount,
       guiltyName: state.currentCase.guiltyName,
-      caseCrime: state.currentCase.crime  // { en, pt }
+      caseCrime: state.currentCase.crime,
+      focusBias: focusPercentage
     });
     saveRanking();
     saveCaseTimestamp();
     render();
-    showResult(true, accused);
+    showResult(true, accused, focusPercentage);
   } else {
     accused.status = 'ally';
-    state.reputation -= 5;
+    state.reputation -= 10; // Heavier penalty for wrong accusation
+    state.trustLevel = Math.max(0, state.trustLevel - 15); // Big trust hit
+    
+    // Track wrong accusation - this person is now "wrongly accused" in game memory
     addSignal(i18n[state.lang].sig_wrong_accusation);
+    
+    // Store wrong accusation for future case "legacies"
+    state.wrongAccusations = state.wrongAccusations || [];
+    state.wrongAccusations.push({
+      day: state.day,
+      accusedName: accused.name,
+      accusedId: accused.id
+    });
+    
     render();
+    showResult(false, accused, focusPercentage);
   }
 }
 
-function showResult(win, accused) {
+function showResult(win, accused, focusBias = 0) {
   const t = i18n[state.lang];
   const overlay = document.getElementById('resultOverlay');
   const title = document.getElementById('resultTitle');
@@ -265,15 +339,41 @@ function showResult(win, accused) {
   title.style.color = win ? 'var(--accent)' : 'var(--danger)';
 
   if (win) {
-    // Mark clue messages in the chat
     revealClues();
-
     const clueCount = state.messages.filter(m => m.isClue).length;
+    
+    // Show responsibility type instead of just "guilty"
+    const respType = state.currentCase.responsibilityType;
+    const respLabel = state.lang === 'pt' 
+      ? RESPONSIBILITY_TYPES[respType].pt 
+      : RESPONSIBILITY_TYPES[respType].en;
+    
     body.innerHTML = `
       <div style="margin-bottom:10px; color: var(--text-secondary); font-size:0.8rem">${t.crime_label}: ${state.currentCase.crime[state.lang]}</div>
       <div style="color: var(--accent); margin-bottom:8px">${t.result_guilty_label}: ${accused.id} // ${accused.name}</div>
+      <div style="color: var(--warning); font-size:0.75rem; margin-bottom:8px">▸ Responsibility: ${respLabel}</div>
       ${clueCount > 0 ? `<div style="color: var(--warning); font-size:0.75rem; margin-bottom:8px">▸ ${clueCount} signal${clueCount > 1 ? 's' : ''} detected in the transcript</div>` : ''}
       <div style="color: var(--text-dim); font-size:0.75rem">${t.result_day_label} ${String(state.day).padStart(3,'0')} — ${t.result_acc_label}: ${state.accusationCount}</div>
+      ${focusBias > 30 ? `<div style="color: var(--warning); font-size:0.7rem; margin-top:8px; border-top:1px solid var(--text-dim); padding-top:8px">⚠ You focused on this subject ${focusBias}% of the time. Did that affect your judgment?</div>` : ''}
+    `;
+  } else {
+    // Wrong accusation - show the damage
+    const respType = state.currentCase.responsibilityType;
+    const respLabel = state.lang === 'pt' 
+      ? RESPONSIBILITY_TYPES[respType].pt 
+      : RESPONSIBILITY_TYPES[respType].en;
+    const realGuilty = state.subjects.find(s => s.id === state.currentCase.guiltyId);
+    
+    body.innerHTML = `
+      <div style="margin-bottom:10px; color: var(--text-secondary); font-size:0.8rem">${t.crime_label}: ${state.currentCase.crime[state.lang]}</div>
+      <div style="color: var(--danger); margin-bottom:8px">▸ WRONG ACCUSATION</div>
+      <div style="color: var(--text-dim); font-size:0.8rem; margin-bottom:8px">You accused ${accused.id} // ${accused.name}</div>
+      <div style="color: var(--accent); font-size:0.8rem; margin-bottom:8px">The real responsible: ${realGuilty.id} // ${realGuilty.name}</div>
+      <div style="color: var(--warning); font-size:0.75rem; margin-bottom:8px">▸ Responsibility: ${respLabel}</div>
+      <div style="color: var(--danger); font-size:0.75rem; margin-top:12px; border-top:1px solid var(--danger); padding-top:8px">
+        ▸ You exposed an innocent person. The group now treats them as a threat.<br>
+        ${focusBias > 30 ? `▸ You focused on them ${focusBias}% of the time. You may have built a narrative.` : ''}
+      </div>
     `;
   }
 
@@ -392,8 +492,13 @@ function saveDailyCase() {
       messages: state.messages,
       day: state.day,
       reputation: state.reputation,
+      trustLevel: state.trustLevel,
       accusationCount: state.accusationCount,
-      caseResolved: state.caseResolved
+      caseResolved: state.caseResolved,
+      consciousnessLevel: state.consciousnessLevel,
+      casePhase: state.casePhase,
+      focusHistory: state.focusHistory,
+      wrongAccusations: state.wrongAccusations
     };
     localStorage.setItem('observer_daily', JSON.stringify(snapshot));
   } catch(e) {}
@@ -411,8 +516,13 @@ function loadDailyCase() {
     state.messages       = snap.messages || [];
     state.day            = snap.day || 1;
     state.reputation     = snap.reputation || 0;
+    state.trustLevel     = snap.trustLevel || 50;
     state.accusationCount= snap.accusationCount || 0;
     state.caseResolved   = snap.caseResolved || false;
+    state.consciousnessLevel = snap.consciousnessLevel || 0;
+    state.casePhase      = snap.casePhase || 'normal';
+    state.focusHistory   = snap.focusHistory || [];
+    state.wrongAccusations = snap.wrongAccusations || [];
     state.caseActive     = true;
     return true;
   } catch(e) { return false; }

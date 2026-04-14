@@ -170,10 +170,25 @@ function updateStats() {
   const t = i18n[state.lang];
   const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   setText('dayCounter', String(state.day).padStart(3, '0'));
+  
+  // Reputation tiers
   let repKey = 'rep_neutral';
   if (state.reputation > 20) repKey = 'rep_respected';
   else if (state.reputation < -20) repKey = 'rep_suspicious';
   setText('reputation', t[repKey]);
+  
+  // Add trust level indicator to reputation display
+  const repEl = document.getElementById('reputation');
+  if (repEl) {
+    repEl.title = `Trust Level: ${state.trustLevel}%`;
+    if (state.trustLevel > 70) {
+      repEl.style.color = 'var(--accent)';
+    } else if (state.trustLevel < 30) {
+      repEl.style.color = 'var(--danger)';
+    } else {
+      repEl.style.color = '';
+    }
+  }
 }
 
 function render() {
@@ -194,6 +209,21 @@ function render() {
   setText('terminal-title', t.terminal);
   setText('label-online', t.online);
   setText('label-day', t.day);
+  setText('label-consciousness', t.consciousness || 'AWARENESS');
+
+  // Update consciousness meter
+  const consciousnessBar = document.getElementById('consciousnessLevel');
+  if (consciousnessBar) {
+    consciousnessBar.style.width = `${state.consciousnessLevel}%`;
+    // Change color based on level
+    if (state.consciousnessLevel < 30) {
+      consciousnessBar.style.backgroundColor = 'var(--accent)';
+    } else if (state.consciousnessLevel < 70) {
+      consciousnessBar.style.backgroundColor = 'var(--warning)';
+    } else {
+      consciousnessBar.style.backgroundColor = 'var(--danger)';
+    }
+  }
 
   // Update crime description and keywords
   if (state.currentCase) {

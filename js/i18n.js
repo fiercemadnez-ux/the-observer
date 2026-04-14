@@ -4,7 +4,7 @@ const i18n = {
     analysis: "Subject Analysis", signals: "Signal Log", actions: "Actions",
     btnExpose: "▸ MARK as suspect", btnFocus: "▸ FOCUS on subject",
     btnClear: "▸ CLEAR suspicion", btnAccuse: "▸ ACCUSE selected",
-    footer: "SYSTEM v0.1.0 // OBSERVATION PROTOCOL ACTIVE", reputationLabel: "REPUTATION",
+    footer: "SYSTEM v0.2.0 // OBSERVATION PROTOCOL ACTIVE", reputationLabel: "REPUTATION",
     rep_neutral: "NEUTRAL", rep_respected: "RESPECTED", rep_known: "KNOWN",
     rep_suspicious: "SUSPICIOUS", rep_compromised: "COMPROMISED",
     status_ally: "CLEARED", status_threat: "GUILTY", status_suspect: "SUSPECT", status_unknown: "UNKNOWN",
@@ -18,21 +18,23 @@ const i18n = {
     generating_case: "▸ GENERATING CASE... // STAND BY",
     crime_label: "INCIDENT",
     result_win: "CASE CLOSED", result_loss: "WRONG ACCUSATION",
-    result_guilty_label: "GUILTY PARTY",
+    result_guilty_label: "RESPONSIBLE PARTY",
     result_day_label: "DAY", result_acc_label: "ACCUSATIONS",
     next_day: "▸ NEXT DAY",
     ranking_title: "CASE HISTORY", ranking_empty: "No cases in archive.",
     ranking_day: "D", ranking_acc: "acc",
     cooldown_title: "CHANNEL OFFLINE",
     cooldown_msg: "Next case available in",
-    cooldown_sub: "Check back tomorrow."
+    cooldown_sub: "Check back tomorrow.",
+    consciousness: "AWARENESS",
+    phase_normal: "NORMAL", phase_tension: "TENSION", phase_deflection: "DEFLECTION", phase_breakdown: "CRITICAL"
   },
   pt: {
     online: "CONECTADO", day: "DIA", terminal: "▸ TRANSMISSÕES RECEBIDAS // TERMINAL_07",
     analysis: "Análise de Sujeitos", signals: "Log de Sinais", actions: "Ações",
     btnExpose: "▸ MARCAR como suspeito", btnFocus: "▸ FOCAR neste sujeito",
     btnClear: "▸ LIMPAR suspeita", btnAccuse: "▸ ACUSAR selecionado",
-    footer: "SISTEMA v0.1.0 // PROTOCOLO DE OBSERVAÇÃO ATIVO", reputationLabel: "REPUTAÇÃO",
+    footer: "SISTEMA v0.2.0 // PROTOCOLO DE OBSERVAÇÃO ATIVO", reputationLabel: "REPUTAÇÃO",
     rep_neutral: "NEUTRA", rep_respected: "RESPEITADA", rep_known: "CONHECIDA",
     rep_suspicious: "SUSPEITA", rep_compromised: "COMPROMETIDA",
     status_ally: "DESCARTADO", status_threat: "CULPADO", status_suspect: "SUSPEITO", status_unknown: "DESCONHECIDO",
@@ -46,13 +48,15 @@ const i18n = {
     generating_case: "▸ GERANDO CASO... // AGUARDE",
     crime_label: "INCIDENTE",
     result_win: "CASO ENCERRADO", result_loss: "ACUSAÇÃO INCORRETA",
-    result_guilty_label: "CULPADO",
+    result_guilty_label: "PARTE RESPONSÁVEL",
     result_day_label: "DIA", result_acc_label: "ACUSAÇÕES",
     next_day: "▸ PRÓXIMO DIA",
     ranking_title: "HISTÓRICO DE CASOS", ranking_empty: "Nenhum caso no arquivo.",
     ranking_day: "D", ranking_acc: "ac",
     cooldown_title: "CANAL OFFLINE",
     cooldown_msg: "Próximo caso disponível em",
-    cooldown_sub: "Volte amanhã."
+    cooldown_sub: "Volte amanhã.",
+    consciousness: "CONSCIÊNCIA",
+    phase_normal: "NORMAL", phase_tension: "TENSÃO", phase_deflection: "DEFLEXÃO", phase_breakdown: "CRÍTICO"
   }
 };

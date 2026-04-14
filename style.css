@@ -614,3 +614,89 @@ mark.kw-highlight {
   border-left: 2px solid var(--danger);
   margin: 4px 0;
 }
+
+/* Interpretations Panel */
+.panel-interpretations {
+  border-left: 2px solid var(--info);
+}
+
+.interp-hint {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  padding: 4px 8px;
+  margin-bottom: 6px;
+}
+
+.interp-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.btn-interp {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--text-dim);
+  color: var(--text-primary);
+  padding: 6px 8px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.btn-interp:hover {
+  border-color: var(--info);
+  background: var(--bg-secondary);
+}
+
+/* Ghost message (cut-off) */
+.message-ghost {
+  border-left-color: var(--text-dim) !important;
+  opacity: 0.5;
+}
+
+.message-ghost .message-body {
+  font-style: italic;
+  color: var(--text-dim);
+}
+
+.message-ghost::after {
+  content: "[SIGNAL LOST]";
+  display: block;
+  font-size: 0.6rem;
+  color: var(--danger);
+  margin-top: 4px;
+}
+
+/* Silence indicator */
+.silence-indicator {
+  text-align: center;
+  padding: 10px;
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  font-style: italic;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Interpretation log entry */
+.interp-entry {
+  font-size: 0.65rem;
+  padding: 2px 4px;
+  border-bottom: 1px solid var(--bg-tertiary);
+}
+
+.interp-entry .interp-type {
+  font-weight: bold;
+}
+
+.interp-entry.interp-defensive { color: #ffaa00; }
+.interp-entry.interp-performing { color: #aa88ff; }
+.interp-entry.interp-manipulating { color: #ff66cc; }
+.interp-entry.interp-afraid { color: #ff4444; }
+.interp-entry.interp-sincere { color: #44ff88; }

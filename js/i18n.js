@@ -27,7 +27,14 @@ const i18n = {
     cooldown_msg: "Next case available in",
     cooldown_sub: "Check back tomorrow.",
     consciousness: "AWARENESS",
-    phase_normal: "NORMAL", phase_tension: "TENSION", phase_deflection: "DEFLECTION", phase_breakdown: "CRITICAL"
+    phase_normal: "NORMAL", phase_tension: "TENSION", phase_deflection: "DEFLECTION", phase_breakdown: "CRITICAL",
+    interp_title: "Interpretations",
+    interp_hint: "What do you see in this person?",
+    interp_defensive: "🛡️ Defensive",
+    interp_performing: "🎭 Performing",
+    interp_manipulating: "🎯 Manipulating",
+    interp_afraid: "😰 Afraid",
+    interp_sincere: "💚 Sincere"
   },
   pt: {
     online: "CONECTADO", day: "DIA", terminal: "▸ TRANSMISSÕES RECEBIDAS // TERMINAL_07",
@@ -57,6 +64,13 @@ const i18n = {
     cooldown_msg: "Próximo caso disponível em",
     cooldown_sub: "Volte amanhã.",
     consciousness: "CONSCIÊNCIA",
-    phase_normal: "NORMAL", phase_tension: "TENSÃO", phase_deflection: "DEFLEXÃO", phase_breakdown: "CRÍTICO"
+    phase_normal: "NORMAL", phase_tension: "TENSÃO", phase_deflection: "DEFLEXÃO", phase_breakdown: "CRÍTICO",
+    interp_title: "Interpretações",
+    interp_hint: "O que você vê nesta pessoa?",
+    interp_defensive: "🛡️ Defensivo",
+    interp_performing: "🎭 Performando",
+    interp_manipulating: "🎯 Manipulando",
+    interp_afraid: "😰 Com Medo",
+    interp_sincere: "💚 Sincero"
   }
 };

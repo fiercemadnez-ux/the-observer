@@ -119,25 +119,36 @@ const state = {
   lang: 'en',
   day: 1,
   reputation: 0,
-  trustLevel: 50, // 0-100: quanto mais alto, mais o sistema te ajuda (e influencia)
+  trustLevel: 50,
   subjects: [],
   messages: [],
   signals: [],
   selectedSubject: null,
   caseActive: false,
   caseResolved: false,
-  currentCase: null,   // { crime, guiltyId, guiltyName, responsibilityType, involved... }
+  currentCase: null,
   accusationCount: 0,
   focusedSubjectId: null,
   focusCount: 0,
-  focusTime: 0, // quanto tempo gastou focando (para calcular viés)
-  totalFocusTime: 0, // tempo total de foco em todos os personagens
-  focusHistory: [], // [{ subjectId, duration, interpretations... }]
-  interpretations: [], // [{ subjectId, type, timestamp }] - cada vez que jogador interpreta algo
-  ranking: [],          // [{ day, win, accusationCount, guiltyName, caseCrime }]
-  surveillanceLog: [],  // [{ subjectId, action, timestamp }]
-  keywordMentions: {},   // { keyword: [subjectId, ...] }
-  consciousnessLevel: 0, // 0-100: quão cientes os personagens estão de serem observados
-  casePhase: 'normal', // 'normal', 'tension', 'deflection', 'breakdown'
-  messageWave: 0 // 0-3: onda atual do caso
+  focusTime: 0,
+  totalFocusTime: 0,
+  focusHistory: [],
+  interpretations: [], // [{ subjectId, type, timestamp, messageId }]
+  ranking: [],
+  surveillanceLog: [],
+  keywordMentions: {},
+  consciousnessLevel: 0,
+  casePhase: 'normal',
+  messageWave: 0,
+  wrongAccusations: [],
+  playerPatterns: {
+    accusesQuiet: 0,
+    accusesTalker: 0,
+    accusesStatus: 0,
+    totalAccusations: 0,
+    focusStreak: 0,
+    lastFocusedId: null
+  },
+  ghostMessageChance: 0.15, // chance of cut-off messages
+  silenceChance: 0.1 // chance of awkward silence
 };

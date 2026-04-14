@@ -1,16 +1,63 @@
 // --- AUTO CHAT LOOP ---
 let chatLoopTimer = null;
 let pendingChatMessage = false;
+let silenceTimer = null;
 
 function startChatLoop() {
   stopChatLoop();
-  // First message after 3s, then every 9-14s
   const delay = 4000 + Math.random() * 2000;
   chatLoopTimer = setTimeout(autoChat, delay);
 }
 
 function stopChatLoop() {
   if (chatLoopTimer) { clearTimeout(chatLoopTimer); chatLoopTimer = null; }
+  if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
+}
+
+// Show a "silence" period - creates tension
+function triggerSilence() {
+  const container = document.getElementById('messageStream');
+  const div = document.createElement('div');
+  div.className = 'silence-indicator';
+  div.textContent = '// SIGNAL INTERCEPTED // WAITING...';
+  container.appendChild(div);
+  container.scrollTop = container.scrollTop;
+  
+  // After 8-15 seconds, resume chat
+  const silenceDuration = 8000 + Math.random() * 7000;
+  silenceTimer = setTimeout(() => {
+    div.remove();
+    autoChat();
+  }, silenceDuration);
+}
+
+// Show a "ghost message" - cut off mid-sentence
+function triggerGhostMessage(subject) {
+  const container = document.getElementById('messageStream');
+  const ghostPhrases = [
+    "I think we should all just-",
+    "Wait, actually I don't think-",
+    "The thing about what happened that night is—",
+    "I've been meaning to tell you guys about-",
+    "Look, I know it sounds weird but—",
+    "Creo que deberíamos-",
+    "Espera, na verdade eu não acho-"
+  ];
+  const text = ghostPhrases[Math.floor(Math.random() * ghostPhrases.length)];
+  
+  const msg = {
+    id: `MSG-${String(state.messages.length + 1).padStart(4, '0')}`,
+    subjectId: subject.id,
+    texts: { en: text, pt: text },
+    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    flagged: false,
+    isGhost: true
+  };
+  
+  renderMessageAnimated(msg);
+  state.messages.push(msg);
+  saveDailyCase();
+  showNewMessageBadge();
 }
 
 async function autoChat() {
@@ -20,8 +67,14 @@ async function autoChat() {
     return;
   }
 
+  // Random silence (15% chance when consciousness is high)
+  if (Math.random() < (state.consciousnessLevel / 500) && state.messages.length > 5) {
+    triggerSilence();
+    return;
+  }
+
   pendingChatMessage = true;
-  // Pick subject: respect FOCUS if set, otherwise random (excluding cleared)
+  
   let subject;
   if (state.focusedSubjectId && state.focusCount > 0) {
     subject = state.subjects.find(s => s.id === state.focusedSubjectId);
@@ -31,6 +84,19 @@ async function autoChat() {
   if (!subject) {
     const candidates = state.subjects.filter(s => s.status !== 'ally');
     subject = candidates[Math.floor(Math.random() * candidates.length)] || state.subjects[0];
+  }
+
+  // Random ghost message chance (15%)
+  if (Math.random() < state.ghostMessageChance && state.messages.length > 3) {
+    const typingId = addTypingIndicator(subject);
+    await new Promise(r => setTimeout(r, 1500));
+    removeTypingIndicator(typingId);
+    triggerGhostMessage(subject);
+    pendingChatMessage = false;
+    
+    const nextDelay = 15000 + Math.random() * 10000;
+    chatLoopTimer = setTimeout(autoChat, nextDelay);
+    return;
   }
 
   const typingId = addTypingIndicator(subject);
@@ -43,7 +109,7 @@ async function autoChat() {
   saveDailyCase();
   showNewMessageBadge();
 
-  // 30% chance another subject reacts organically
+  // Organic reaction (30% chance)
   if (Math.random() < 0.3) {
     triggerOrganicReaction(subject);
   }
@@ -271,6 +337,74 @@ function clearSubject() {
   render();
 }
 
+// --- ACTIVE INTERPRETATION ---
+
+const INTERPRETATION_TYPES = {
+  defensive: {
+    en: "seems defensive",
+    pt: "parece defensivo",
+    desc: "reacting with unusual intensity, avoiding certain topics"
+  },
+  performing: {
+    en: "performing a role",
+    pt: "interpretando um papel",
+    desc: "acting differently than usual, trying to seem normal"
+  },
+  manipulating: {
+    en: "manipulating narrative",
+    pt: "manipulando narrativa",
+    desc: "trying to steer conversation, controlling the story"
+  },
+  afraid: {
+    en: "showing fear",
+    pt: "mostrando medo",
+    desc: "nervous, anxious, worried about being exposed"
+  },
+  sincere: {
+    en: "appears sincere",
+    pt: "parece sincero",
+    desc: "genuine, authentic, not hiding anything"
+  }
+};
+
+function interpretSubject(type) {
+  if (state.caseResolved) return;
+  if (!state.selectedSubject) return addSignal(i18n[state.lang].sig_no_subject);
+  
+  const s = state.subjects.find(sub => sub.id === state.selectedSubject);
+  const interp = INTERPRETATION_TYPES[type];
+  if (!interp) return;
+  
+  // Store interpretation
+  state.interpretations.push({
+    subjectId: s.id,
+    type: type,
+    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    day: state.day
+  });
+  
+  const label = state.lang === 'pt' ? interp.pt : interp.en;
+  addSignal(`[INTERPRETATION] ${s.id}: ${label}`);
+  
+  // Track player patterns for psychological profiling
+  state.playerPatterns.totalAccusations++;
+  if (type === 'defensive') {
+    // Pattern: does player interpret quiet people as defensive?
+  }
+  
+  // If trust is high, system might "confirm" your interpretation (creating bias)
+  if (state.trustLevel > 60 && Math.random() < (state.trustLevel / 200)) {
+    const confirmations = [
+      "[SYSTEM] Pattern consistent with profile.",
+      "[SYSTEM] Behavioral markers support this reading.",
+      "[SYSTEM] Correlation found with previous cases.",
+      "[SYSTEM] This interpretation aligns with observed data."
+    ];
+    addSignal(confirmations[Math.floor(Math.random() * confirmations.length)]);
+  }
+  
+  render();
+}
 
 
 // --- ACCUSATION ---

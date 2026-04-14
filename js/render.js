@@ -87,20 +87,21 @@ function renderMessages() {
     const rawText = msg.texts ? (msg.texts[state.lang] || msg.texts.en) : (msg.text || '');
     const text = applyKeywordHighlights(rawText);
     const isObserver = msg.isObserver;
+    const isGhost = msg.isGhost;
     const color = isObserver ? 'var(--info)' : (s ? s.color : 'var(--text-dim)');
     const isSelected = s && s.id === state.selectedSubject;
     const isClue = msg.isClue;
 
     return `
-      <div class="message ${isObserver ? 'message-observer' : ''} ${isSelected ? 'message-selected' : ''} ${isClue ? 'message-clue' : ''}" 
+      <div class="message ${isObserver ? 'message-observer' : ''} ${isSelected ? 'message-selected' : ''} ${isClue ? 'message-clue' : ''} ${isGhost ? 'message-ghost' : ''}" 
            style="border-left-color: ${color}" 
-           ${!isObserver ? `onclick="selectSubject('${msg.subjectId}')"` : ''}>
+           ${!isObserver && !isGhost ? `onclick="selectSubject('${msg.subjectId}')"` : ''}>
         <div class="message-header">
-          <span class="message-id" style="color: ${color}">${isObserver ? '// OBSERVER' : `${msg.subjectId} // ${s ? s.name : '???'}`}</span>
+          <span class="message-id" style="color: ${color}">${isObserver ? '// OBSERVER' : (isGhost ? '// SIGNAL LOST' : `${msg.subjectId} // ${s ? s.name : '???'}`)}</span>
           <span class="message-timestamp">${msg.timestamp}</span>
         </div>
         <div class="message-body">${text}</div>
-        ${msg.flagged ? `<div class="message-flag">${i18n[state.lang].flagged}</div>` : ''}
+        ${msg.flagged && !isGhost ? `<div class="message-flag">${i18n[state.lang].flagged}</div>` : ''}
         ${isClue ? `<div class="message-clue-label">▸ SIGNAL DETECTED</div>` : ''}
       </div>`;
   }).join('');
@@ -210,6 +211,8 @@ function render() {
   setText('label-online', t.online);
   setText('label-day', t.day);
   setText('label-consciousness', t.consciousness || 'AWARENESS');
+  setText('title-interpretations', t.interp_title || 'Interpretations');
+  setText('interp-hint', t.interp_hint || 'What do you see in this person?');
 
   // Update consciousness meter
   const consciousnessBar = document.getElementById('consciousnessLevel');
